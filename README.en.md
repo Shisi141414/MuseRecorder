@@ -13,8 +13,12 @@ Muse 2 / Muse S Gen 1 — for live EEG, electrode contact quality and battery mo
 **Mind Monitor compatible CSV** recording with event markers. Built for long, stable sessions:
 foreground service + wake lock + automatic reconnection.
 
-![Overview](docs/images/overview-en.svg)
-![Spectrogram](docs/images/spectrogram-en.svg)
+<p align="left">
+  <img src="docs/images/en-1.jpg" width="23%" alt="Overview spectrogram">
+  <img src="docs/images/en-2.jpg" width="23%" alt="Overview raw EEG">
+  <img src="docs/images/en-3.jpg" width="23%" alt="Overview spectrum">
+  <img src="docs/images/en-4.jpg" width="23%" alt="Connect page">
+</p>
 
 ## Features
 

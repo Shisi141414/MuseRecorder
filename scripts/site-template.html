@@ -43,14 +43,12 @@
   .card b { display: block; font-size: 15.5px; margin-bottom: 6px; }
   .card p { font-size: 13.5px; color: var(--muted); }
 
-  .shot { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
-  .shot figure { background: var(--card); border-radius: 22px; padding: 14px;
+  .shot { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+  .shot figure { background: var(--card); border-radius: 18px; padding: 10px;
     box-shadow: 0 4px 16px rgba(30,40,90,.07); text-align: center; }
+  .shot img { width: 100%; height: auto; border-radius: 10px; border: 1px solid var(--line); }
   .shot svg { width: 100%; height: auto; }
-  .shot figcaption { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
-  figure.zhen svg { display: none; }
-  html[lang="zh"] figure.zhen svg { display: block; }
-  html[lang="en"] figure.zhen svg { display: block; }
+  .shot figcaption { font-size: 12px; color: var(--muted); margin-top: 8px; }
 
   pre { background: #171A26; color: #D7DBEA; border-radius: 14px;
     padding: 16px 18px; overflow-x: auto; font-size: 12.5px; line-height: 1.7; }
@@ -94,27 +92,31 @@
 
 <section>
   <div class="wrap">
-    <h2><span data-zh>界面预览</span><span data-en>Preview</span><small data-zh>中英双语界面示意图</small><small data-en>UI illustrations in Chinese and English</small></h2>
+    <h2><span data-zh>界面预览</span><span data-en>Preview</span><small data-zh>真机截图 · 中英双语界面</small><small data-en>Real screenshots · Chinese & English UI</small></h2>
     <div class="shot">
       <figure>
-        {{SVG_OVERVIEW_ZH}}
-        <figcaption data-zh>总览 · 原始视图（简体中文）</figcaption>
-        <figcaption data-en>Overview · Raw view (Chinese)</figcaption>
+        <div data-zh><img src="{{IMG_ZH_1}}" alt="总览 光谱图视图"></div>
+        <div data-en><img src="{{IMG_EN_1}}" alt="Overview spectrogram"></div>
+        <figcaption data-zh>总览 · 光谱图视图</figcaption>
+        <figcaption data-en>Overview · Spectrogram</figcaption>
       </figure>
       <figure>
-        {{SVG_OVERVIEW_EN}}
-        <figcaption data-zh>总览 · 原始视图（English）</figcaption>
-        <figcaption data-en>Overview · Raw view (English)</figcaption>
+        <div data-zh><img src="{{IMG_ZH_2}}" alt="总览 原始视图"></div>
+        <div data-en><img src="{{IMG_EN_2}}" alt="Overview raw view"></div>
+        <figcaption data-zh>总览 · 原始波视图</figcaption>
+        <figcaption data-en>Overview · Raw EEG</figcaption>
       </figure>
       <figure>
-        {{SVG_SPEC_ZH}}
-        <figcaption data-zh>总览 · 光谱图视图（简体中文）</figcaption>
-        <figcaption data-en>Overview · Spectrogram view (Chinese)</figcaption>
+        <div data-zh><img src="{{IMG_ZH_3}}" alt="总览 频谱视图"></div>
+        <div data-en><img src="{{IMG_EN_3}}" alt="Overview spectrum view"></div>
+        <figcaption data-zh>总览 · 频谱视图</figcaption>
+        <figcaption data-en>Overview · Spectrum</figcaption>
       </figure>
       <figure>
-        {{SVG_SPEC_EN}}
-        <figcaption data-zh>总览 · 光谱图视图（English）</figcaption>
-        <figcaption data-en>Overview · Spectrogram view (English)</figcaption>
+        <div data-zh><img src="{{IMG_ZH_4}}" alt="连接页"></div>
+        <div data-en><img src="{{IMG_EN_4}}" alt="Connect page"></div>
+        <figcaption data-zh>连接页 · 扫描与日志</figcaption>
+        <figcaption data-en>Connect · Scan & log</figcaption>
       </figure>
     </div>
   </div>

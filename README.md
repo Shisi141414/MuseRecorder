@@ -12,8 +12,12 @@ Android 原生应用：连接 **Muse S (Gen 2 / Athena)** 及 Muse 2016 / Muse 2
 实时查看脑电、电极接触质量与电量，以 **Mind Monitor 兼容 CSV** 记录数据并插入事件标注。
 为长时间稳定采集设计：前台服务 + 唤醒锁 + 断线自动重连。
 
-![总览页](docs/images/overview-zh.svg)
-![光谱图视图](docs/images/spectrogram-zh.svg)
+<p align="left">
+  <img src="docs/images/zh-1.jpg" width="23%" alt="总览-光谱图">
+  <img src="docs/images/zh-2.jpg" width="23%" alt="总览-原始波">
+  <img src="docs/images/zh-3.jpg" width="23%" alt="总览-频谱">
+  <img src="docs/images/zh-4.jpg" width="23%" alt="连接页">
+</p>
 
 ## 功能
 
