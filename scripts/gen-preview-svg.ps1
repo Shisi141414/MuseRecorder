@@ -167,5 +167,17 @@ foreach ($lang in @("zh", "en")) {
     [System.IO.File]::WriteAllText((Join-Path $out "overview-$lang.svg"), (Build-Overview $lang $false), [System.Text.UTF8Encoding]::new($false))
     [System.IO.File]::WriteAllText((Join-Path $out "spectrogram-$lang.svg"), (Build-Overview $lang $true), [System.Text.UTF8Encoding]::new($false))
 }
+
+# 由模板生成单文件网站（SVG 直接内嵌，浏览器面板预览与 Pages 均可显示）
+$templatePath = Join-Path $root "scripts/site-template.html"
+if (Test-Path $templatePath) {
+    $html = [IO.File]::ReadAllText($templatePath, [Text.UTF8Encoding]::new($false))
+    $html = $html.Replace("{{SVG_OVERVIEW_ZH}}", (Build-Overview "zh" $false))
+    $html = $html.Replace("{{SVG_OVERVIEW_EN}}", (Build-Overview "en" $false))
+    $html = $html.Replace("{{SVG_SPEC_ZH}}", (Build-Overview "zh" $true))
+    $html = $html.Replace("{{SVG_SPEC_EN}}", (Build-Overview "en" $true))
+    [System.IO.File]::WriteAllText((Join-Path $root "docs/index.html"), $html, [Text.UTF8Encoding]::new($false))
+    Write-Output "docs/index.html generated (single-file, inline SVG)"
+}
 Write-Output "SVG generated:"
 Get-ChildItem $out | ForEach-Object { Write-Output "  $($_.Name) ($([Math]::Round($_.Length/1KB,1)) KB)" }
