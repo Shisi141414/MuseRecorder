@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Muse Recorder</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_overview">Overview</string>
+    <string name="nav_connect">Connect</string>
+    <string name="nav_record">Record</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Overview -->
+    <string name="overview_status_title">Status</string>
+    <string name="overview_signal_fmt">Signal %1$d dBm · %2$s</string>
+    <string name="overview_signal_unknown">Signal unknown (shown after connecting)</string>
+    <string name="signal_good">Excellent</string>
+    <string name="signal_medium">Good</string>
+    <string name="signal_weak">Fair</string>
+    <string name="signal_bad">Poor</string>
+    <string name="overview_wave_title">Live EEG</string>
+    <string name="overview_quality_title">Electrode contact quality</string>
+    <string name="btn_connect">Connect</string>
+    <string name="btn_cancel_connect">Cancel</string>
+    <string name="btn_rec_start">Rec</string>
+    <string name="btn_rec_stop">Stop</string>
+    <string name="go_connect_hint">Please scan and select a device on the Connect page first</string>
+    <string name="overview_hint">Top card: connection &amp; signal quality, electrode contact quality (green=good / yellow=fair / red=poor), battery. The long button connects/disconnects the headband; the red button toggles recording; 1–4 insert event markers (long-press to rename, written to CSV).</string>
+    <string name="connect_log_title">Connection log</string>
+    <string name="log_kind_ok">OK</string>
+    <string name="log_kind_warn">State</string>
+    <string name="log_kind_err">Fail</string>
+    <string name="log_kind_info">Info</string>
+    <string name="switch_view">Switch view</string>
+    <string name="view_raw">Raw</string>
+    <string name="view_fft">Spectrum</string>
+    <string name="view_spec">Spectrogram</string>
+    <string name="view_fft_note">1–60 Hz · avg of 4 ch</string>
+    <string name="view_spec_note">Newest on top · time ↓</string>
+
+    <!-- Common -->
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="share">Share</string>
+    <string name="unknown">Unknown</string>
+    <string name="not_available">—</string>
+
+    <!-- Connect page -->
+    <string name="status_idle">Not connected</string>
+    <string name="status_scanning">Scanning…</string>
+    <string name="status_connecting">Connecting…</string>
+    <string name="status_connected">Connected (configuring)</string>
+    <string name="status_streaming">Streaming</string>
+    <string name="status_reconnecting">Reconnecting (attempt %1$d)</string>
+    <string name="status_disconnected">Disconnected</string>
+    <string name="btn_scan">Scan devices</string>
+    <string name="btn_deep_scan">Deep scan</string>
+    <string name="btn_disconnect">Disconnect</string>
+    <string name="scan_empty_hint">No devices found. Make sure the headband is powered on (hold the power button) and not occupied by the official app; you can also try Deep Scan.</string>
+    <string name="scan_location_hint">Note: on Android 11 and below, scanning requires the system Location toggle to be enabled.</string>
+    <string name="quick_connect_title">Last device</string>
+    <string name="quick_connect_btn">Connect</string>
+    <string name="battery_label">Battery</string>
+    <string name="battery_value">%1$d%%</string>
+    <string name="protocol_athena">Protocol: Athena (Muse S Gen 2)</string>
+    <string name="protocol_legacy">Protocol: Legacy (Muse 2016/2/S Gen 1)</string>
+    <string name="device_info_fmt">Model %1$s · FW %2$s · SN %3$s</string>
+    <string name="caps_fmt">Available: EEG%1$s%2$s%3$s</string>
+    <string name="cap_accel"> · Accel</string>
+    <string name="cap_gyro"> · Gyro</string>
+    <string name="cap_ppg"> · PPG/Optics</string>
+    <string name="voltage_fmt">Voltage %1$.0f mV</string>
+    <string name="temp_fmt">Temp %1$.1f ℃</string>
+    <string name="need_permission">Bluetooth permissions are required to scan and connect</string>
+    <string name="bluetooth_off">Bluetooth is off. Please enable it in system settings.</string>
+
+    <!-- Monitor -->
+    <string name="monitor_title">Live EEG (last 6 s)</string>
+    <string name="quality_title">Electrode contact quality</string>
+    <string name="quality_good">Good</string>
+    <string name="quality_medium">Fair</string>
+    <string name="quality_bad">Poor</string>
+    <string name="headband_on">Worn</string>
+    <string name="headband_off">Not worn</string>
+    <string name="quality_note">Estimated locally (firmware HSI is not exposed over raw GATT)</string>
+    <string name="stats_eeg_rate">EEG rate</string>
+    <string name="stats_eeg_rate_fmt">%1$.0f samples/s (nominal 256)</string>
+    <string name="stats_imu_fmt">Accel %1$.0f/s · Gyro %2$.0f/s</string>
+    <string name="stats_ppg_fmt">PPG %1$.0f/s · Optics %2$.0f/s</string>
+    <string name="no_data">No data yet — connect a device first</string>
+    <string name="acc_fmt">Pose: X %1$+.3f Y %2$+.3f Z %3$+.3f g</string>
+
+    <!-- Record page -->
+    <string name="record_idle">Not recording</string>
+    <string name="record_start">Start recording</string>
+    <string name="record_stop">Stop recording</string>
+    <string name="record_running_fmt">Recording %1$s</string>
+    <string name="record_stats_fmt">%1$d rows · %2$s</string>
+    <string name="record_need_connection">Connect a device before recording</string>
+    <string name="markers_title">Event markers (tap to insert)</string>
+    <string name="markers_hint">Long-press a number button to rename it; markers are written to the Elements column of the CSV</string>
+    <string name="custom_marker">Custom marker…</string>
+    <string name="custom_marker_title">Enter marker text</string>
+    <string name="marker_done">Marker inserted: %1$s</string>
+    <string name="marker_need_recording">Markers are only written while recording</string>
+    <string name="marker_label_title">Label for button %1$d</string>
+    <string name="recent_files_title">Data files (recent 15)</string>
+    <string name="files_title">Data files (Download/MuseRecorder)</string>
+    <string name="files_empty">No files</string>
+    <string name="file_delete_confirm">Delete %1$s?</string>
+    <string name="file_size_fmt">%1$s</string>
+    <string name="more_files_fmt">More files (%1$d)</string>
+    <string name="file_browser_title">All data files</string>
+    <string name="file_search_hint">Search file names</string>
+    <string name="filter_all">All</string>
+    <string name="filter_today">Today</string>
+    <string name="filter_week">7 days</string>
+    <string name="filter_month">30 days</string>
+    <string name="file_count_fmt">%1$d files</string>
+
+    <!-- Settings page -->
+    <string name="settings_section_data">Recorded data</string>
+    <string name="settings_sw_accel">Record accelerometer (52 Hz)</string>
+    <string name="settings_sw_gyro">Record gyroscope (52 Hz)</string>
+    <string name="settings_sw_ppg">Record PPG / optics (64 Hz)</string>
+    <string name="settings_note_reconnect">Sensor toggles take effect on the next connection</string>
+    <string name="settings_section_device">Device</string>
+    <string name="settings_preset_hint">Preset (empty = auto: Athena p1041 / legacy p21)</string>
+    <string name="settings_sw_low_latency">Low-latency mode (Athena)</string>
+    <string name="settings_sw_light_off">Turn off headband LED</string>
+    <string name="settings_section_stability">Stability</string>
+    <string name="settings_sw_auto_reconnect">Auto-reconnect on drop</string>
+    <string name="settings_btn_battery_opt">Add to battery optimization whitelist</string>
+    <string name="settings_section_file">File</string>
+    <string name="settings_prefix_hint">File name prefix</string>
+    <string name="settings_section_chart">Chart</string>
+    <string name="settings_eeg_range">EEG display range</string>
+    <string name="range_auto">Auto</string>
+    <string name="range_uv_fmt">±%1$d µV</string>
+    <string name="range_current_fmt">Current: %1$s</string>
+    <string name="settings_section_language">Language</string>
+    <string name="lang_follow_system">Follow system</string>
+    <string name="lang_zh">简体中文</string>
+    <string name="lang_en">English</string>
+    <string name="lang_select_title">Select language</string>
+    <string name="lang_current_fmt">Current: %1$s</string>
+    <string name="settings_about_title">About</string>
+    <string name="settings_about">Muse Recorder v%1$s\nSupports Muse S (Gen 2/Athena) and Muse 2016/2/S Gen 1.\nOutputs Mind Monitor compatible CSV (TimeStamp/RAW_*/Accelerometer_*/Gyro_*/PPG*/Optics_*/Battery/HSI_*/Elements).\nProtocol implementation references muse-lsl and BrainFlow (MIT).</string>
+
+    <!-- Notifications -->
+    <string name="notif_channel">Acquisition status</string>
+    <string name="notif_idle">Muse Recorder</string>
+    <string name="notif_connecting">Connecting…</string>
+    <string name="notif_streaming">Streaming</string>
+    <string name="notif_reconnecting">Reconnecting (attempt %1$d)</string>
+    <string name="notif_recording">● Recording %1$s</string>
+    <string name="notif_battery">Battery %1$d%%</string>
+    <string name="notif_rows">rows</string>
+    <string name="notif_stop_record">Stop recording</string>
+    <string name="notif_disconnect">Disconnect</string>
+    <string name="notif_no_device">No device connected</string>
+
+    <!-- Permissions -->
+    <string name="perm_rationale">"Nearby devices" permission is needed to connect the Muse headband; notification permission shows the acquisition status. Location is only used for Bluetooth scanning on Android 11 and below.</string>
+
+    <!-- Connection log & errors (follows app language) -->
+    <string name="log_connect_fmt">Connecting %1$s (attempt %2$d)</string>
+    <string name="log_connect_bg_fmt">Connecting %1$s (attempt %2$d, background)</string>
+    <string name="log_gatt_connected">GATT connected, discovering services…</string>
+    <string name="log_services_done">Service discovery done</string>
+    <string name="log_disconnected_fmt">Disconnected (%1$s)</string>
+    <string name="log_failed_fmt">Failed: %1$s</string>
+    <string name="log_sub_timeout_fmt">Subscribe timeout %1$s</string>
+    <string name="log_sub_fail_fmt">Subscribe failed %1$s (%2$s)</string>
+    <string name="log_cmd_fail_fmt">Command %1$s write failed (rc=%2$d)</string>
+    <string name="log_write_fail_fmt">Write failed (%1$s)</string>
+    <string name="log_no_data_fmt">No data for %1$d s, reconnecting</string>
+    <string name="log_backoff_fmt">auto-retry in %1$d s</string>
+    <string name="log_state_fmt">State: %1$s</string>
+    <string name="log_streaming_ok">State: Streaming</string>
+    <string name="err_no_permission">Bluetooth permission missing or unavailable</string>
+    <string name="err_invalid_addr">Invalid device address</string>
+    <string name="err_not_muse">Not a supported Muse device (no Muse data characteristics found)</string>
+    <string name="err_conn_timeout">Connection timeout (device not responding)</string>
+    <string name="err_services_fmt">Service discovery failed (%1$s)</string>
+    <string name="err_discover_start">Failed to start service discovery</string>
+    <string name="err_connect_gatt">connectGatt returned null</string>
+    <string name="err_no_control">Control characteristic missing</string>
+    <string name="err_eeg_chars_fmt">EEG characteristics incomplete (%1$d/5)</string>
+    <string name="err_no_subscribe">Unable to subscribe to any data characteristic</string>
+    <string name="err_scan_fmt">Scan failed (code %1$d)</string>
+    <string name="err_record_file">Cannot create recording file (storage unavailable?)</string>
+    <string name="warn_preset_fmt">Preset %1$s not supported on Athena, using p1041</string>
+    <string name="gatt_ok">OK</string>
+    <string name="gatt_insufficient_enc">GATT insufficient encryption</string>
+    <string name="gatt_timeout">Connection timeout</string>
+    <string name="gatt_conn_fail">Connection failed</string>
+    <string name="gatt_busy">GATT busy</string>
+    <string name="gatt_remote_closed">Remote device disconnected</string>
+    <string name="gatt_local_closed">Local disconnect</string>
+    <string name="gatt_cancelled">Cancelled by system</string>
+    <string name="gatt_auto_na">Auto-connect unavailable</string>
+    <string name="gatt_full">Too many connections</string>
+    <string name="gatt_133">GATT error (133)</string>
+    <string name="gatt_257">Internal error (257)</string>
+</resources>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 应用图标：圆角底 + 脑电波 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="96"
+    android:viewportHeight="96">
+    <path
+        android:fillColor="#4355B9"
+        android:pathData="M24,4 L72,4 A20,20 0 0 1 92,24 L92,72 A20,20 0 0 1 72,92 L24,92 A20,20 0 0 1 4,72 L4,24 A20,20 0 0 1 24,4 Z" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M10,48 L24,48 L30,32 L40,64 L50,24 L60,60 L68,44 L70,48 L86,48" />
+</vector>

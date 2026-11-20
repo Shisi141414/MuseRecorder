@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Muse 记录器</string>
+
+    <!-- 底部导航 -->
+    <string name="nav_overview">总览</string>
+    <string name="nav_connect">连接</string>
+    <string name="nav_record">记录</string>
+    <string name="nav_settings">设置</string>
+
+    <!-- 总览页 -->
+    <string name="overview_status_title">状态</string>
+    <string name="overview_signal_fmt">信号 %1$d dBm · %2$s</string>
+    <string name="overview_signal_unknown">信号未知（连接后显示）</string>
+    <string name="signal_good">优</string>
+    <string name="signal_medium">良</string>
+    <string name="signal_weak">一般</string>
+    <string name="signal_bad">差</string>
+    <string name="overview_wave_title">实时脑电</string>
+    <string name="overview_quality_title">电极接触质量</string>
+    <string name="btn_connect">连接</string>
+    <string name="btn_cancel_connect">取消连接</string>
+    <string name="btn_rec_start">记录</string>
+    <string name="btn_rec_stop">停止</string>
+    <string name="go_connect_hint">请先在「连接」页扫描并选择设备</string>
+    <string name="overview_hint">上框：连接与信号质量、电极接触质量（绿=好 / 黄=中 / 红=差）、剩余电量。长按钮连接或断开头环；红键开始 / 结束录制；1–4 为事件标注（长按改名，写入 CSV）。</string>
+    <string name="connect_log_title">连接日志</string>
+    <string name="log_kind_ok">成功</string>
+    <string name="log_kind_warn">状态</string>
+    <string name="log_kind_err">失败</string>
+    <string name="log_kind_info">信息</string>
+    <string name="switch_view">切换视图</string>
+    <string name="view_raw">原始</string>
+    <string name="view_fft">频谱</string>
+    <string name="view_spec">光谱图</string>
+    <string name="view_fft_note">1–60 Hz · 4 通道平均</string>
+    <string name="view_spec_note">最新在顶 · 时间 ↓</string>
+
+    <!-- 通用 -->
+    <string name="ok">确定</string>
+    <string name="cancel">取消</string>
+    <string name="delete">删除</string>
+    <string name="share">分享</string>
+    <string name="unknown">未知</string>
+    <string name="not_available">—</string>
+
+    <!-- 连接页 -->
+    <string name="status_idle">未连接</string>
+    <string name="status_scanning">扫描中…</string>
+    <string name="status_connecting">连接中…</string>
+    <string name="status_connected">已连接（配置中）</string>
+    <string name="status_streaming">数据流正常</string>
+    <string name="status_reconnecting">重连中（第 %1$d 次）</string>
+    <string name="status_disconnected">已断开</string>
+    <string name="btn_scan">扫描设备</string>
+    <string name="btn_deep_scan">深度扫描</string>
+    <string name="btn_disconnect">断开连接</string>
+    <string name="scan_empty_hint">未发现设备。请确认头band已开机（长按电源键），且未被官方 App 占用；也可尝试深度扫描。</string>
+    <string name="scan_location_hint">提示：Android 11 及以下系统扫描需要开启「位置信息」系统开关。</string>
+    <string name="quick_connect_title">上次设备</string>
+    <string name="quick_connect_btn">连接</string>
+    <string name="battery_label">电池</string>
+    <string name="battery_value">%1$d%%</string>
+    <string name="protocol_athena">协议：Athena（Muse S 二代）</string>
+    <string name="protocol_legacy">协议：Legacy（Muse 2016/2/S 一代）</string>
+    <string name="device_info_fmt">型号 %1$s · 固件 %2$s · 序列号 %3$s</string>
+    <string name="caps_fmt">可用：EEG%1$s%2$s%3$s</string>
+    <string name="cap_accel"> · 加速度计</string>
+    <string name="cap_gyro"> · 陀螺仪</string>
+    <string name="cap_ppg"> · PPG/光学</string>
+    <string name="voltage_fmt">电压 %1$.0f mV</string>
+    <string name="temp_fmt">温度 %1$.1f ℃</string>
+    <string name="need_permission">需要蓝牙权限才能扫描和连接</string>
+    <string name="bluetooth_off">蓝牙未开启，请在系统设置中打开蓝牙</string>
+
+    <!-- 监测页 -->
+    <string name="monitor_title">实时脑电（最近 6 秒）</string>
+    <string name="quality_title">电极接触质量</string>
+    <string name="quality_good">好</string>
+    <string name="quality_medium">中</string>
+    <string name="quality_bad">差</string>
+    <string name="headband_on">已佩戴</string>
+    <string name="headband_off">未检测到佩戴</string>
+    <string name="quality_note">本地估计（原始 GATT 流不含固件 HSI）</string>
+    <string name="stats_eeg_rate">EEG 速率</string>
+    <string name="stats_eeg_rate_fmt">%1$.0f 样本/秒（标准 256）</string>
+    <string name="stats_imu_fmt">加速度 %1$.0f/s · 陀螺 %2$.0f/s</string>
+    <string name="stats_ppg_fmt">PPG %1$.0f/s · 光学 %2$.0f/s</string>
+    <string name="no_data">暂无数据，请先连接设备</string>
+    <string name="acc_fmt">姿态: X %1$+.3f Y %2$+.3f Z %3$+.3f g</string>
+
+    <!-- 记录页 -->
+    <string name="record_idle">未在记录</string>
+    <string name="record_start">开始记录</string>
+    <string name="record_stop">停止记录</string>
+    <string name="record_running_fmt">正在记录 %1$s</string>
+    <string name="record_stats_fmt">%1$d 行 · %2$s</string>
+    <string name="record_need_connection">请先连接设备再开始记录</string>
+    <string name="markers_title">事件标注（点击插入标记）</string>
+    <string name="markers_hint">长按数字按钮可修改标签；标注会写入 CSV 的 Elements 列</string>
+    <string name="custom_marker">自定义标注…</string>
+    <string name="custom_marker_title">输入标注内容</string>
+    <string name="marker_done">已插入标记：%1$s</string>
+    <string name="marker_need_recording">标注仅在记录时写入文件</string>
+    <string name="marker_label_title">设置按钮 %1$d 的标签</string>
+    <string name="recent_files_title">数据文件（最近 15 条）</string>
+    <string name="files_title">数据文件（Download/MuseRecorder）</string>
+    <string name="files_empty">暂无文件</string>
+    <string name="file_delete_confirm">删除文件 %1$s？</string>
+    <string name="file_size_fmt">%1$s</string>
+    <string name="more_files_fmt">更多文件（%1$d）</string>
+    <string name="file_browser_title">所有数据文件</string>
+    <string name="file_search_hint">搜索文件名</string>
+    <string name="filter_all">全部</string>
+    <string name="filter_today">今天</string>
+    <string name="filter_week">近7天</string>
+    <string name="filter_month">近30天</string>
+    <string name="file_count_fmt">共 %1$d 个文件</string>
+
+    <!-- 设置页 -->
+    <string name="settings_section_data">记录内容</string>
+    <string name="settings_sw_accel">记录加速度计 (52 Hz)</string>
+    <string name="settings_sw_gyro">记录陀螺仪 (52 Hz)</string>
+    <string name="settings_sw_ppg">记录 PPG / 光学 (64 Hz)</string>
+    <string name="settings_note_reconnect">传感器开关在下次连接后生效</string>
+    <string name="settings_section_device">设备</string>
+    <string name="settings_preset_hint">预置（留空=自动：Athena p1041 / 旧款 p21）</string>
+    <string name="settings_sw_low_latency">低延迟模式（Athena）</string>
+    <string name="settings_sw_light_off">关闭头band指示灯</string>
+    <string name="settings_section_stability">稳定性</string>
+    <string name="settings_sw_auto_reconnect">断线自动重连</string>
+    <string name="settings_btn_battery_opt">加入电池优化白名单</string>
+    <string name="settings_section_file">文件</string>
+    <string name="settings_prefix_hint">文件名前缀</string>
+    <string name="settings_section_chart">图表</string>
+    <string name="settings_eeg_range">脑电显示量程</string>
+    <string name="range_auto">自动</string>
+    <string name="range_uv_fmt">±%1$d µV</string>
+    <string name="range_current_fmt">当前：%1$s</string>
+    <string name="settings_section_language">语言</string>
+    <string name="lang_follow_system">跟随系统</string>
+    <string name="lang_zh">简体中文</string>
+    <string name="lang_en">English</string>
+    <string name="lang_select_title">选择语言</string>
+    <string name="lang_current_fmt">当前：%1$s</string>
+    <string name="settings_about_title">关于</string>
+    <string name="settings_about">Muse 记录器 v%1$s\n支持 Muse S (Gen 2/Athena) 与 Muse 2016/2/S 一代。\n输出 Mind Monitor 兼容 CSV（TimeStamp/RAW_*/Accelerometer_*/Gyro_*/PPG*/Optics_*/Battery/HSI_*/Elements）。\n协议实现参考 muse-lsl 与 BrainFlow（MIT）。</string>
+
+    <!-- 通知 -->
+    <string name="notif_channel">采集状态</string>
+    <string name="notif_idle">Muse 记录器</string>
+    <string name="notif_connecting">连接中…</string>
+    <string name="notif_streaming">数据流正常</string>
+    <string name="notif_reconnecting">重连中（第 %1$d 次）</string>
+    <string name="notif_recording">● 记录中 %1$s</string>
+    <string name="notif_battery">电量 %1$d%%</string>
+    <string name="notif_rows">行</string>
+    <string name="notif_stop_record">停止记录</string>
+    <string name="notif_disconnect">断开</string>
+    <string name="notif_no_device">未连接设备</string>
+
+    <!-- 权限 -->
+    <string name="perm_rationale">需要「附近的设备」权限用于连接 Muse 头环；通知权限用于显示采集状态。位置权限仅用于 Android 11 及以下的蓝牙扫描。</string>
+
+    <!-- 连接日志与错误（随应用语言） -->
+    <string name="log_connect_fmt">连接 %1$s（第 %2$d 次尝试）</string>
+    <string name="log_connect_bg_fmt">连接 %1$s（第 %2$d 次尝试，后台模式）</string>
+    <string name="log_gatt_connected">GATT 已连接，发现服务…</string>
+    <string name="log_services_done">服务发现完成</string>
+    <string name="log_disconnected_fmt">连接断开（%1$s）</string>
+    <string name="log_failed_fmt">失败：%1$s</string>
+    <string name="log_sub_timeout_fmt">订阅超时 %1$s</string>
+    <string name="log_sub_fail_fmt">订阅失败 %1$s（%2$s）</string>
+    <string name="log_cmd_fail_fmt">命令 %1$s 写入失败 (rc=%2$d)</string>
+    <string name="log_write_fail_fmt">命令写入失败（%1$s）</string>
+    <string name="log_no_data_fmt">数据中断 %1$d s，尝试重连</string>
+    <string name="log_backoff_fmt">%1$d s 后自动重连</string>
+    <string name="log_state_fmt">状态：%1$s</string>
+    <string name="log_streaming_ok">状态：数据流正常</string>
+    <string name="err_no_permission">缺少蓝牙权限或蓝牙不可用</string>
+    <string name="err_invalid_addr">无效的设备地址</string>
+    <string name="err_not_muse">不是受支持的 Muse 设备（未发现 Muse 数据特征）</string>
+    <string name="err_conn_timeout">连接超时（设备未响应）</string>
+    <string name="err_services_fmt">服务发现失败（%1$s）</string>
+    <string name="err_discover_start">discoverServices 发起失败</string>
+    <string name="err_connect_gatt">connectGatt 返回 null</string>
+    <string name="err_no_control">缺少控制特征</string>
+    <string name="err_eeg_chars_fmt">EEG 特征不完整 (%1$d/5)</string>
+    <string name="err_no_subscribe">无法订阅任何数据特征</string>
+    <string name="err_scan_fmt">扫描失败 (code %1$d)</string>
+    <string name="err_record_file">无法创建录制文件（存储不可用？）</string>
+    <string name="warn_preset_fmt">预置 %1$s 不在 Athena 支持列表，改用 p1041</string>
+    <string name="gatt_ok">成功</string>
+    <string name="gatt_insufficient_enc">GATT 不足加密</string>
+    <string name="gatt_timeout">连接超时</string>
+    <string name="gatt_conn_fail">连接失败</string>
+    <string name="gatt_busy">GATT 并发忙</string>
+    <string name="gatt_remote_closed">远程设备断开</string>
+    <string name="gatt_local_closed">本地断开</string>
+    <string name="gatt_cancelled">系统取消连接</string>
+    <string name="gatt_auto_na">自动连接不可用</string>
+    <string name="gatt_full">连接数已满</string>
+    <string name="gatt_133">GATT 通用错误(133)</string>
+    <string name="gatt_257">内部错误(257)</string>
+</resources>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MuseRecorder — Muse S 脑电记录器 / BLE EEG Recorder</title>
+<meta name="description" content="Muse S (Gen 2) 脑电记录器：实时脑电、电极质量、CSV 记录与事件标注 / Native Android BLE EEG recorder for Muse headbands">
+<style>
+  :root {
+    --primary: #4355B9; --primary-dark: #32408C; --bg: #F5F6FB; --card: #fff;
+    --text: #1B1F2D; --muted: #6D7386; --line: #E4E7F0;
+    --good: #2FA84F; --amber: #E8A23A; --bad: #D84B4B;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, "Segoe UI", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.65; }
+  a { color: var(--primary); text-decoration: none; }
+  .wrap { max-width: 1020px; margin: 0 auto; padding: 0 20px; }
+
+  header { background: linear-gradient(135deg, var(--primary), #5A6BD0); color: #fff; padding: 48px 0 40px; }
+  header h1 { font-size: 34px; letter-spacing: .5px; }
+  header .tag { opacity: .92; margin-top: 10px; max-width: 640px; }
+  .badges { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .badge { background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.35);
+    padding: 4px 12px; border-radius: 999px; font-size: 13px; }
+  .cta { margin-top: 22px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn { display: inline-block; padding: 12px 26px; border-radius: 14px; font-weight: 700; font-size: 16px; }
+  .btn-light { background: #fff; color: var(--primary); box-shadow: 0 6px 18px rgba(0,0,0,.18); }
+  .btn-ghost { border: 1.6px solid rgba(255,255,255,.6); color: #fff; }
+
+  .langbar { background: var(--card); border-bottom: 1px solid var(--line); }
+  .langbar .wrap { display: flex; align-items: center; padding: 10px 20px; gap: 8px; }
+  .langbtn { border: 1.4px solid var(--line); background: var(--card); color: var(--muted);
+    padding: 5px 16px; border-radius: 999px; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .langbtn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+  section { padding: 44px 0; }
+  h2 { font-size: 24px; margin-bottom: 18px; }
+  h2 small { color: var(--muted); font-weight: 400; font-size: 14px; margin-left: 10px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+  .card { background: var(--card); border-radius: 18px; padding: 18px 20px;
+    box-shadow: 0 2px 10px rgba(30,40,90,.05); }
+  .card b { display: block; font-size: 15.5px; margin-bottom: 6px; }
+  .card p { font-size: 13.5px; color: var(--muted); }
+  .shot { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+  .shot figure { background: var(--card); border-radius: 22px; padding: 14px;
+    box-shadow: 0 4px 16px rgba(30,40,90,.07); text-align: center; }
+  .shot img { width: 100%; max-width: 360px; height: auto; }
+  .shot figcaption { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+  pre { background: #14172270; background: #171A26; color: #D7DBEA; border-radius: 14px;
+    padding: 16px 18px; overflow-x: auto; font-size: 12.5px; line-height: 1.7; }
+  ol, ul { padding-left: 22px; color: var(--text); }
+  li { margin: 6px 0; font-size: 14.5px; }
+  footer { border-top: 1px solid var(--line); padding: 26px 0 40px; color: var(--muted); font-size: 13px; }
+  footer .links { margin-bottom: 8px; }
+
+  [data-en] { display: initial; }
+  html[lang="en"] [data-zh-only] { display: none; }
+  html[lang="zh"] [data-en-only] { display: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>MuseRecorder</h1>
+    <p class="tag" data-zh>Muse S（第二代）脑电记录器：实时脑电、电极质量、电量监测与 CSV 数据记录，为长时间稳定采集而设计。</p>
+    <p class="tag" data-en>BLE EEG recorder for the Muse S (Gen 2): live EEG, electrode quality, battery monitoring and CSV recording — built for long, stable sessions.</p>
+    <div class="badges">
+      <span class="badge">Android 8.0+</span>
+      <span class="badge">v1.5.0</span>
+      <span class="badge">MIT</span>
+      <span class="badge" data-zh>简体中文 / English</span>
+      <span class="badge" data-en>Simplified Chinese / English</span>
+    </div>
+    <div class="cta">
+      <a class="btn btn-light" href="https://github.com/Shisi141414/MuseRecorder/releases" target="_blank">⬇ <span data-zh>下载 APK</span><span data-en>Download APK</span></a>
+      <a class="btn btn-ghost" href="https://github.com/Shisi141414/MuseRecorder" target="_blank">★ GitHub</a>
+    </div>
+  </div>
+</header>
+
+<div class="langbar">
+  <div class="wrap">
+    <span style="font-size:13px;color:var(--muted)" data-zh>语言：</span>
+    <span style="font-size:13px;color:var(--muted)" data-en>Language:</span>
+    <button class="langbtn active" id="btnZh" onclick="setLang('zh')">简体中文</button>
+    <button class="langbtn" id="btnEn" onclick="setLang('en')">English</button>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <h2><span data-zh>界面预览</span><span data-en>Preview</span><small data-zh>示意图，点击查看大图</small><small data-en>Illustrations — click to enlarge</small></h2>
+    <div class="shot">
+      <figure>
+        <a href="images/overview-zh.svg" target="_blank"><img data-zh src="images/overview-zh.svg" alt="总览页"></a>
+        <a href="images/overview-en.svg" target="_blank"><img data-en src="images/overview-en.svg" alt="Overview"></a>
+        <figcaption><span data-zh>总览页：状态/信号/电量 + 电极质量 + 三视图脑电 + 标注键，一屏无滚动</span><span data-en>Overview: status/signal/battery + electrode quality + 3-view EEG + markers in one screen</span></figcaption>
+      </figure>
+      <figure>
+        <a href="images/spectrogram-zh.svg" target="_blank"><img data-zh src="images/spectrogram-zh.svg" alt="光谱图"></a>
+        <a href="images/spectrogram-en.svg" target="_blank"><img data-en src="images/spectrogram-en.svg" alt="Spectrogram"></a>
+        <figcaption><span data-zh>光谱图视图：频率横轴（5 Hz 分度），时间纵轴最新在顶</span><span data-en>Spectrogram view: frequency on X (5 Hz ticks), newest frames on top</span></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <h2><span data-zh>功能特性</span><span data-en>Features</span></h2>
+    <div class="cards">
+      <div class="card"><b data-zh>三视图实时脑电</b><b data-en>3-view live EEG</b>
+        <p data-zh>原始波（四通道独立分框）· 频谱（1–60 Hz dB）· 光谱图（瀑布热图），一键切换。</p>
+        <p data-en>Raw (4 independent lanes) · spectrum (1–60 Hz dB) · spectrogram (waterfall), one-tap switching.</p></div>
+      <div class="card"><b data-zh>电极质量与电量</b><b data-en>Electrode quality & battery</b>
+        <p data-zh>每通道 好/中/差 + 佩戴检测；电池图标按 60/20 分档变色，RSSI 信号强度实时显示。</p>
+        <p data-en>Good/fair/poor per channel + wear detection; color-tiered battery icon and live RSSI.</p></div>
+      <div class="card"><b data-zh>Mind Monitor 兼容 CSV</b><b data-en>Mind Monitor compatible CSV</b>
+        <p data-zh>EEG 256 Hz、加速度/陀螺 52 Hz、PPG/光学 64 Hz、电量与 HSI 列，MATLAB 脚本可直接读取。</p>
+        <p data-en>EEG 256 Hz, accel/gyro 52 Hz, PPG/optics 64 Hz, battery and HSI columns — reads directly with MATLAB scripts.</p></div>
+      <div class="card"><b data-zh>事件标注</b><b data-en>Event markers</b>
+        <p data-zh>总览 4 键 + 记录页 9 键（长按改名）+ 自定义文本；断线/恢复自动写入标记。</p>
+        <p data-en>4 quick keys + 9 renameable keys + custom text; automatic disconnect/reconnect markers.</p></div>
+      <div class="card"><b data-zh>长时间稳定采集</b><b data-en>Long-session stability</b>
+        <p data-zh>前台服务 + 唤醒锁（锁屏不断流）、数据看门狗、指数退避自动重连、GATT 缓存清理。</p>
+        <p data-en>Foreground service + wake lock, data watchdog, exponential-backoff auto-reconnect, GATT cache refresh.</p></div>
+      <div class="card"><b data-zh>双协议 · 双语 · 深色模式</b><b data-en>Dual protocol · bilingual · dark mode</b>
+        <p data-zh>自动识别 Muse S Gen 2（Athena）与旧款 Muse；界面/日志随语言切换；深色模式全面适配。</p>
+        <p data-en>Auto-detects Muse S Gen 2 (Athena) and legacy Muses; UI/logs switch with language; full dark mode.</p></div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <h2><span data-zh>快速上手</span><span data-en>Quick start</span></h2>
+    <ol>
+      <li data-zh>从 Releases 下载 APK 并安装（允许未知来源）。</li>
+      <li data-en>Download the APK from Releases and install (allow unknown sources).</li>
+      <li data-zh>开启头环电源，在「连接」页扫描并选择设备（MuseS-XXXX）。</li>
+      <li data-en>Power on the headband, scan and select it (MuseS-XXXX) on the Connect page.</li>
+      <li data-zh>总览页确认四个电极质量为绿色后，点「记录」开始；点 1–4 插入事件标注。</li>
+      <li data-en>Check all four electrodes are green on the overview, tap "Rec" to start; tap 1–4 to insert markers.</li>
+      <li data-zh>文件保存在 Download/MuseRecorder/，应用内可分享到电脑。</li>
+      <li data-en>Files are saved to Download/MuseRecorder/ and can be shared from the app.</li>
+    </ol>
+    <h2 style="margin-top:34px"><span data-zh>CSV 格式</span><span data-en>CSV format</span></h2>
+<pre>TimeStamp,RAW_TP9,RAW_AF7,RAW_AF8,RAW_TP10,[RAW_AUX,][Accelerometer_X/Y/Z,][Gyro_X/Y/Z,]
+[PPG1,PPG2,PPG3,][Optics_0..15,]Battery,HSI_TP9,HSI_AF7,HSI_AF8,HSI_TP10,Elements
+2026-11-21 09:41:12.345,-12.31,4.72,-88.04,21.90,...,100,1,1,2,4,RecordingStart
+2026-11-21 09:41:13.876,...,...,...,...,...,100,1,1,1,1,1</pre>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="links">
+      <a href="https://github.com/Shisi141414/MuseRecorder">GitHub</a> ·
+      <a href="https://github.com/Shisi141414/MuseRecorder/releases">Releases</a> ·
+      <a href="PROTOCOL.md">Protocol</a> ·
+      <a href="https://github.com/alexandrebarachant/muse-lsl">muse-lsl (MIT)</a> ·
+      <a href="https://github.com/brainflow-dev/brainflow">BrainFlow (MIT)</a>
+    </div>
+    <p>© 2026 韩浩琦 (Han Haoqi) · MIT License</p>
+    <p data-zh>独立社区作品，与 InterAxon Inc. 无隶属关系；"Muse" 是 InterAxon Inc. 的商标。</p>
+    <p data-en>An independent community project, not affiliated with InterAxon Inc. "Muse" is a trademark of InterAxon Inc.</p>
+  </div>
+</footer>
+
+<script>
+  function setLang(l) {
+    document.documentElement.lang = l;
+    document.querySelectorAll('[data-zh]').forEach(el => el.style.display = l === 'zh' ? '' : 'none');
+    document.querySelectorAll('[data-en]').forEach(el => el.style.display = l === 'en' ? '' : 'none');
+    document.getElementById('btnZh').classList.toggle('active', l === 'zh');
+    document.getElementById('btnEn').classList.toggle('active', l === 'en');
+    try { localStorage.setItem('lang', l); } catch (e) {}
+  }
+  try { setLang(localStorage.getItem('lang') || 'zh'); } catch (e) { setLang('zh'); }
+</script>
+</body>
+</html>

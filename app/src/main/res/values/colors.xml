@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#4355B9</color>
+    <color name="primary_dark">#32408C</color>
+    <color name="primary_night">#38479F</color>
+    <color name="accent">#4355B9</color>
+    <color name="good">#2FA84F</color>
+    <color name="medium">#E8A23A</color>
+    <color name="bad">#D84B4B</color>
+    <color name="trace_tp9">#2E7DD1</color>
+    <color name="trace_af7">#2FA84F</color>
+    <color name="trace_af8">#E8833A</color>
+    <color name="trace_tp10">#9B59D6</color>
+    <color name="hintGray">#8A90A4</color>
+    <color name="chipBg">#F1F2F9</color>
+</resources>

@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="6dp">
+
+    <!-- 框1：状态 · 信号 · 电极质量 · 电量 -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="18dp"
+        app:strokeWidth="0dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="12dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <View
+                    android:id="@+id/statusDot"
+                    android:layout_width="13dp"
+                    android:layout_height="13dp"
+                    android:background="@drawable/dot" />
+
+                <TextView
+                    android:id="@+id/statusText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="10dp"
+                    android:text="@string/status_idle"
+                    android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+                <com.neuroskill.muserecorder.ui.BatteryView
+                    android:id="@+id/batteryView"
+                    android:layout_width="76dp"
+                    android:layout_height="32dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/signalText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/overview_signal_unknown"
+                    android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+                <TextView
+                    android:id="@+id/headbandText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceLabelLarge" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:id="@+id/chipTp9"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/chip_bg"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingVertical="9dp">
+
+                    <View
+                        android:id="@+id/dotTp9"
+                        android:layout_width="15dp"
+                        android:layout_height="15dp"
+                        android:background="@drawable/dot" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:text="TP9"
+                        android:textAppearance="?attr/textAppearanceLabelLarge" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/chipAf7"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/chip_bg"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingVertical="9dp">
+
+                    <View
+                        android:id="@+id/dotAf7"
+                        android:layout_width="15dp"
+                        android:layout_height="15dp"
+                        android:background="@drawable/dot" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:text="AF7"
+                        android:textAppearance="?attr/textAppearanceLabelLarge" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/chipAf8"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/chip_bg"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingVertical="9dp">
+
+                    <View
+                        android:id="@+id/dotAf8"
+                        android:layout_width="15dp"
+                        android:layout_height="15dp"
+                        android:background="@drawable/dot" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:text="AF8"
+                        android:textAppearance="?attr/textAppearanceLabelLarge" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/chipTp10"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:background="@drawable/chip_bg"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingVertical="9dp">
+
+                    <View
+                        android:id="@+id/dotTp10"
+                        android:layout_width="15dp"
+                        android:layout_height="15dp"
+                        android:background="@drawable/dot" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:text="TP10"
+                        android:textAppearance="?attr/textAppearanceLabelLarge" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- 操作行：长连接/断开按钮 + 方形录制按钮 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnConnect"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:text="@string/btn_connect"
+            android:textSize="17sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRec"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="92dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="10dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:text="@string/btn_rec_start"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/bad"
+            app:strokeColor="@color/bad"
+            app:strokeWidth="2dp" />
+    </LinearLayout>
+
+    <!-- 波形（占剩余空间，右上角图例） -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="10dp"
+        app:cardCornerRadius="18dp"
+        app:strokeWidth="0dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/overview_wave_title"
+                    android:textAppearance="?attr/textAppearanceTitleSmall" />
+
+                <TextView
+                    android:id="@+id/modeBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/mode_badge_bg"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="2dp"
+                    android:text="@string/view_raw"
+                    android:textColor="?attr/colorPrimary"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+
+                <ImageButton
+                    android:id="@+id/btnViewMode"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_marginStart="6dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/switch_view"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_view_cycle"
+                    app:tint="?attr/colorPrimary" />
+
+                <LinearLayout
+                    android:id="@+id/legendRow"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:gravity="end|center_vertical"
+                    android:orientation="horizontal">
+
+                    <View
+                        android:layout_width="10dp"
+                        android:layout_height="4dp"
+                        android:background="@color/trace_tp9" />
+
+                    <TextView style="@style/LegendText" android:text="TP9" />
+
+                    <View
+                        android:layout_width="10dp"
+                        android:layout_height="4dp"
+                        android:layout_marginStart="8dp"
+                        android:background="@color/trace_af7" />
+
+                    <TextView style="@style/LegendText" android:text="AF7" />
+
+                    <View
+                        android:layout_width="10dp"
+                        android:layout_height="4dp"
+                        android:layout_marginStart="8dp"
+                        android:background="@color/trace_af8" />
+
+                    <TextView style="@style/LegendText" android:text="AF8" />
+
+                    <View
+                        android:layout_width="10dp"
+                        android:layout_height="4dp"
+                        android:layout_marginStart="8dp"
+                        android:background="@color/trace_tp10" />
+
+                    <TextView style="@style/LegendText" android:text="TP10" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/legendAlt"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:gravity="end"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="@color/hintGray"
+                    android:textSize="10sp"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <com.neuroskill.muserecorder.ui.EegWaveView
+                android:id="@+id/waveView"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_marginTop="6dp" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- 事件标注：波形下方，仅 4 个按钮 -->
+    <LinearLayout
+        android:id="@+id/markerRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal" />
+
+    <!-- 页面说明 -->
+    <TextView
+        android:id="@+id/hintText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:lineSpacingExtra="2dp"
+        android:text="@string/overview_hint"
+        android:textAppearance="?attr/textAppearanceBodySmall"
+        android:textColor="@color/hintGray"
+        android:textSize="11sp" />
+</LinearLayout>
