@@ -9,6 +9,7 @@ import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -22,19 +23,23 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicLong
 
 /**
- * CSV 记录器：所有数据事件进入单一无界通道，由专职写线程按序落盘。
+ * CSV 记录器：所有数据事件进入有界通道（满则丢最旧样本，绝不无界堆积），
+ * 由专职写线程按序落盘。文件打开/写入全部在写线程进行，失败通过 onFatal 上报，
+ * 不会导致应用崩溃或内存溢出。
+ *
  * 输出格式与 Mind Monitor 兼容：
  *   TimeStamp,RAW_TP9,RAW_AF7,RAW_AF8,RAW_TP10,[AUX,][Accelerometer_X/Y/Z,][Gyro_X/Y/Z,]
  *   [PPG1..3 | Optics_0..15,]Battery,HSI_TP9,HSI_AF7,HSI_AF8,HSI_TP10,Elements
- * 每行一个 EEG 样本（256 Hz），IMU/光学列为最近值；标注行为独立行。
  */
 class CsvRecorder(private val context: Context) {
 
     companion object {
         private const val TAG = "CsvRecorder"
         private const val DIR_NAME = "MuseRecorder"
+        private const val CAPACITY = 20_000        // ≈ 90 秒 EEG 事件缓冲上限
     }
 
     sealed class Event {
@@ -51,8 +56,8 @@ class CsvRecorder(private val context: Context) {
         val aux: Boolean,
         val accel: Boolean,
         val gyro: Boolean,
-        val optics: Boolean,   // Athena 16 通道
-        val ppg: Boolean,      // legacy 3 通道
+        val optics: Boolean,   // Athena 16 通道光学
+        val ppg: Boolean,      // legacy 3 通道 PPG
     )
 
     data class RecordingInfo(
@@ -65,6 +70,11 @@ class CsvRecorder(private val context: Context) {
     val state = MutableStateFlow<RecordingInfo?>(null)
     @Volatile var isRecording = false
         private set
+
+    /** 致命错误回调（写线程死亡/文件失败），用于 UI 与日志提示 */
+    @Volatile var onFatal: ((String) -> Unit)? = null
+
+    private val droppedCount = AtomicLong()
 
     // 供行内锁存的最新值（写线程读取）
     @Volatile private var batteryPct = -1
@@ -86,49 +96,21 @@ class CsvRecorder(private val context: Context) {
     fun setBattery(pct: Int) { batteryPct = pct }
     fun setHsi(levels: IntArray?) { hsiLevels = levels }
 
-    /** 开始录制；返回文件名，失败返回 null */
+    /** 开始录制：立即返回文件名；文件打开与写入在写线程进行 */
     fun start(scope: CoroutineScope, columns: Columns, prefix: String): String? {
         if (isRecording) return state.value?.fileName
         val stamp = SimpleDateFormat("yyyy-MM-dd_HH.mm.ss", Locale.US).format(Date())
         val fileName = "${prefix.ifBlank { "MuseRecord" }}_$stamp.csv"
 
-        val opened: Boolean
-        if (Build.VERSION.SDK_INT >= 29) {
-            val resolver = context.contentResolver
-            val values = ContentValues().apply {
-                put(MediaStore.Downloads.DISPLAY_NAME, fileName)
-                put(MediaStore.Downloads.MIME_TYPE, "text/csv")
-                put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/" + DIR_NAME)
-            }
-            val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
-            fileUri = uri
-            outputStream = uri?.let { resolver.openOutputStream(it, "wt") }
-            opened = outputStream != null
-        } else {
-            val dir = File(context.getExternalFilesDir(null), DIR_NAME).apply { mkdirs() }
-            val f = File(dir, fileName)
-            filePath = f
-            outputStream = FileOutputStream(f)
-            opened = true
-        }
-        if (!opened) {
-            Log.e(TAG, "无法创建录制文件")
-            cleanupSink()
-            return null
-        }
-
         rows = 0; bytes = 0
-        sink = BufferedWriter(OutputStreamWriter(outputStream!!, Charsets.UTF_8), 1 shl 16)
-        sink!!.write(headerLine(columns))
-        sink!!.write("\n")
-
-        val ch = Channel<Event>(Channel.UNLIMITED)
+        droppedCount.set(0)
+        val ch = Channel<Event>(capacity = CAPACITY, onBufferOverflow = BufferOverflow.DROP_OLDEST)
         channel = ch
         isRecording = true
         state.value = RecordingInfo(fileName, System.currentTimeMillis(), 0, 0)
 
         writerJob = scope.launch(writerDispatcher) {
-            writeLoop(ch, columns)
+            openAndWrite(ch, columns, fileName)
         }
         offer(Event.Marker("RecordingStart", nowMs()))
         return fileName
@@ -148,7 +130,13 @@ class CsvRecorder(private val context: Context) {
     }
 
     fun offer(event: Event) {
-        channel?.trySend(event)
+        val ch = channel ?: return
+        val r = ch.trySend(event)
+        if (r.isFailure) {
+            // 兜底（DROP_OLDEST 策略下不会走到）
+            val d = droppedCount.incrementAndGet()
+            if (d == 1L) Log.e(TAG, "event queue full, dropping events")
+        }
     }
 
     fun addMarker(text: String) {
@@ -157,7 +145,50 @@ class CsvRecorder(private val context: Context) {
 
     private fun nowMs(): Double = System.currentTimeMillis().toDouble()
 
+    private fun fatal(what: String) {
+        Log.e(TAG, "recording fatal: $what")
+        try { sink?.flush() } catch (_: Exception) {}
+        try { sink?.close() } catch (_: Exception) {}
+        sink = null
+        cleanupSink()
+        isRecording = false
+        state.value = null
+        onFatal?.invoke(what)
+    }
+
     // ---------------- 写线程 ----------------
+
+    private suspend fun openAndWrite(ch: Channel<Event>, columns: Columns, fileName: String) {
+        // 打开文件（写线程，避免主线程 IO）
+        try {
+            if (Build.VERSION.SDK_INT >= 29) {
+                val resolver = context.contentResolver
+                val values = ContentValues().apply {
+                    put(MediaStore.Downloads.DISPLAY_NAME, fileName)
+                    put(MediaStore.Downloads.MIME_TYPE, "text/csv")
+                    put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/" + DIR_NAME)
+                }
+                val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+                fileUri = uri
+                outputStream = uri?.let { resolver.openOutputStream(it, "wt") }
+            } else {
+                val dir = File(context.getExternalFilesDir(null), DIR_NAME).apply { mkdirs() }
+                val f = File(dir, fileName)
+                filePath = f
+                outputStream = FileOutputStream(f)
+            }
+            val os = outputStream
+                ?: throw IllegalStateException("openOutputStream failed")
+            sink = BufferedWriter(OutputStreamWriter(os, Charsets.UTF_8), 1 shl 16)
+            sink!!.write(headerLine(columns))
+            sink!!.write("\n")
+        } catch (e: Exception) {
+            fatal("无法创建录制文件: ${e.message}")
+            return
+        }
+
+        writeLoop(ch, columns)
+    }
 
     private suspend fun writeLoop(ch: Channel<Event>, columns: Columns) {
         val sb = StringBuilder(256)
@@ -167,65 +198,74 @@ class CsvRecorder(private val context: Context) {
         var ppgLatest: FloatArray? = null
         var opticsLatest: FloatArray? = null
         var lastFlush = System.nanoTime()
+        var consecutiveErrors = 0
 
         try {
             for (event in ch) {
-                when (event) {
-                    is Event.Eeg -> {
-                        val n = event.ts.size
-                        val nCh = minOf(event.data.size, if (columns.aux) 5 else 4)
-                        val hsi = hsiLevels
-                        for (i in 0 until n) {
+                try {
+                    when (event) {
+                        is Event.Eeg -> {
+                            val n = event.ts.size
+                            val nCh = minOf(event.data.size, if (columns.aux) 5 else 4)
+                            val hsi = hsiLevels
+                            for (i in 0 until n) {
+                                sb.setLength(0)
+                                sb.append(tsFormat.format(Date((event.ts[i] * 1000.0).toLong())))
+                                for (c in 0 until nCh) {
+                                    sb.append(',')
+                                    appendFloat(sb, event.data[c][i], 2)
+                                }
+                                if (columns.accel) {
+                                    val a = accLatest
+                                    for (k in 0..2) { sb.append(','); appendFloat(sb, a?.get(k) ?: Float.NaN, 5) }
+                                }
+                                if (columns.gyro) {
+                                    val g = gyroLatest
+                                    for (k in 0..2) { sb.append(','); appendFloat(sb, g?.get(k) ?: Float.NaN, 3) }
+                                }
+                                if (columns.ppg) {
+                                    val p = ppgLatest
+                                    for (k in 0..2) { sb.append(','); appendInt(sb, p?.get(k)) }
+                                }
+                                if (columns.optics) {
+                                    val o = opticsLatest
+                                    for (k in 0 until 16) { sb.append(','); appendInt(sb, o?.get(k)) }
+                                }
+                                sb.append(',')
+                                if (batteryPct >= 0) sb.append(batteryPct)
+                                for (k in 0 until 4) {
+                                    sb.append(',')
+                                    val lv = hsi?.get(k) ?: -1
+                                    if (lv > 0) sb.append(lv)
+                                }
+                                sb.append(',')
+                                sb.append('\n')
+                                sink!!.write(sb.toString())
+                                rows++
+                            }
+                        }
+                        is Event.Acc -> accLatest = event.data
+                        is Event.Gyro -> gyroLatest = event.data
+                        is Event.Ppg -> ppgLatest = event.data
+                        is Event.Optics -> opticsLatest = event.data
+                        is Event.Marker -> {
                             sb.setLength(0)
-                            sb.append(tsFormat.format(Date((event.ts[i] * 1000.0).toLong())))
-                            for (c in 0 until nCh) {
-                                sb.append(',')
-                                appendFloat(sb, event.data[c][i], 2)
-                            }
-                            if (columns.accel) {
-                                val a = accLatest
-                                for (k in 0..2) { sb.append(','); appendFloat(sb, a?.get(k) ?: Float.NaN, 5) }
-                            }
-                            if (columns.gyro) {
-                                val g = gyroLatest
-                                for (k in 0..2) { sb.append(','); appendFloat(sb, g?.get(k) ?: Float.NaN, 3) }
-                            }
-                            if (columns.ppg) {
-                                val p = ppgLatest
-                                for (k in 0..2) { sb.append(','); appendInt(sb, p?.get(k)) }
-                            }
-                            if (columns.optics) {
-                                val o = opticsLatest
-                                for (k in 0 until 16) { sb.append(','); appendInt(sb, o?.get(k)) }
-                            }
+                            sb.append(tsFormat.format(Date(event.tsMs.toLong())))
+                            val colCount = columnCount(columns)
+                            repeat(colCount) { sb.append(',') }
                             sb.append(',')
-                            if (batteryPct >= 0) sb.append(batteryPct)
-                            for (k in 0 until 4) {
-                                sb.append(',')
-                                val lv = hsi?.get(k) ?: -1
-                                if (lv > 0) sb.append(lv)
-                            }
-                            sb.append(',')
+                            appendEscaped(sb, event.text)
                             sb.append('\n')
                             sink!!.write(sb.toString())
                             rows++
                         }
                     }
-                    is Event.Acc -> accLatest = latestPerAxis(event.data)
-                    is Event.Gyro -> gyroLatest = latestPerAxis(event.data)
-                    is Event.Ppg -> ppgLatest = latestPerAxis(event.data)
-                    is Event.Optics -> opticsLatest = latestPerAxis(event.data)
-                    is Event.Marker -> {
-                        sb.setLength(0)
-                        sb.append(tsFormat.format(Date(event.tsMs.toLong())))
-                        val colCount = columnCount(columns)
-                        repeat(colCount) { sb.append(',') }
-                        sb.append(',')
-                        appendEscaped(sb, event.text)
-                        sb.append('\n')
-                        sink!!.write(sb.toString())
-                        rows++
-                    }
+                    consecutiveErrors = 0
+                } catch (e: Exception) {
+                    // 单个事件失败不影响后续写入
+                    consecutiveErrors++
+                    Log.e(TAG, "event write error #$consecutiveErrors", e)
+                    if (consecutiveErrors >= 50) throw e
                 }
                 if (System.nanoTime() - lastFlush > 2_000_000_000L) {
                     sink?.flush()
@@ -236,18 +276,13 @@ class CsvRecorder(private val context: Context) {
             sink?.flush()
             updateInfo()
         } catch (e: Exception) {
-            Log.e(TAG, "write error", e)
+            fatal("写入中断: ${e.message}")
         } finally {
             try { sink?.flush() } catch (_: Exception) {}
             try { sink?.close() } catch (_: Exception) {}
             sink = null
             cleanupSink()
         }
-    }
-
-    private fun latestPerAxis(data: FloatArray): FloatArray {
-        // data 为 [ch][1] 的最近样本：取每通道最后一个值
-        return data
     }
 
     private fun updateInfo() {

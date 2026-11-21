@@ -499,6 +499,7 @@ class MuseBle(private val context: Context, private val listener: Listener) {
             var rssiTick = 0
             while (true) {
                 delay(2000L)
+                if (!streaming) break   // 连接已切换/断开，停止本看门狗
                 if (++rssiTick >= 2) {   // 每 4 秒读一次信号强度
                     rssiTick = 0
                     try { g.readRemoteRssi() } catch (_: Exception) {}
@@ -575,24 +576,36 @@ class MuseBle(private val context: Context, private val listener: Listener) {
         return p
     }
 
-    /** 写控制命令；调用方需自行保证 ≥50ms 间隔 */
+    /** 写控制命令；调用方需自行保证 ≥50ms 间隔（限速不阻塞超过 50ms） */
     fun sendCommand(cmd: String) {
         val g = gatt ?: return
         val c = controlChar ?: return
         val bytes = MuseProtocol.encodeCommand(cmd)
-        lastCmdMs = System.currentTimeMillis()
-        if (Build.VERSION.SDK_INT >= 33) {
-            val rc = g.writeCharacteristic(c, bytes, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE)
-            if (rc != BluetoothStatusCodes.SUCCESS) {
-                listener.onLog(str(R.string.log_cmd_fail_fmt, cmd, rc), LogKind.ERROR)
+        val now = System.currentTimeMillis()
+        val since = now - lastCmdMs
+        if (since in 0 until 50) {
+            try {
+                Thread.sleep(50 - since)
+            } catch (_: InterruptedException) {
+                Thread.currentThread().interrupt()
             }
-        } else {
-            @Suppress("DEPRECATION")
-            c.setValue(bytes)
-            @Suppress("DEPRECATION")
-            c.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
-            @Suppress("DEPRECATION")
-            g.writeCharacteristic(c)
+        }
+        lastCmdMs = System.currentTimeMillis()
+        try {
+            if (Build.VERSION.SDK_INT >= 33) {
+                val rc = g.writeCharacteristic(c, bytes, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE)
+                if (rc != BluetoothStatusCodes.SUCCESS) {
+                    listener.onLog(str(R.string.log_cmd_fail_fmt, cmd, rc), LogKind.ERROR)
+                }
+            } else {
+                @Suppress("DEPRECATION")
+                c.setValue(bytes)
+                @Suppress("DEPRECATION")
+                c.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+                @Suppress("DEPRECATION")
+                g.writeCharacteristic(c)
+            }
+        } catch (_: Exception) {
         }
         Log.d(TAG, "cmd -> $cmd")
     }

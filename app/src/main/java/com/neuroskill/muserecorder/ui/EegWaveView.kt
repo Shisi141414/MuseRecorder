@@ -116,21 +116,24 @@ class EegWaveView @JvmOverloads constructor(
         axisPaint.textSize = 26f
     }
 
-    /** 由外部定时调用（约 30 fps） */
+    /** 由外部定时调用（约 30 fps）；内部异常不外抛，保证 UI 循环安全 */
     fun refresh() {
-        when (mode) {
-            Mode.RAW -> {
-                sampleCount = MuseHub.wave.copyOut(DRAW_SAMPLES, buf)
-            }
-            Mode.FFT -> computePsd()
-            Mode.SPECTROGRAM -> {
-                val now = System.currentTimeMillis()
-                if (now - lastSpecMs >= SPEC_COL_MS) {
-                    lastSpecMs = now
-                    computePsd()
-                    pushSpecRow()
+        try {
+            when (mode) {
+                Mode.RAW -> {
+                    sampleCount = MuseHub.wave.copyOut(DRAW_SAMPLES, buf)
+                }
+                Mode.FFT -> computePsd()
+                Mode.SPECTROGRAM -> {
+                    val now = System.currentTimeMillis()
+                    if (now - lastSpecMs >= SPEC_COL_MS) {
+                        lastSpecMs = now
+                        computePsd()
+                        pushSpecRow()
+                    }
                 }
             }
+        } catch (_: Exception) {
         }
         postInvalidateOnAnimation()
     }

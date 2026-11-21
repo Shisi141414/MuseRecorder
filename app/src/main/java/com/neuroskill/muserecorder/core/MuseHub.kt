@@ -13,6 +13,7 @@ import com.neuroskill.muserecorder.ble.MuseBle
 import com.neuroskill.muserecorder.ble.MuseProtocol
 import com.neuroskill.muserecorder.ble.ScanItem
 import com.neuroskill.muserecorder.util.Locales
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -38,7 +39,12 @@ object MuseHub {
         private set
     lateinit var prefs: Prefs
         private set
-    val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    /** 协程异常不致崩溃，且全部落盘（CrashReporter） */
+    val scope = CoroutineScope(
+        SupervisorJob() + Dispatchers.Default +
+            CoroutineExceptionHandler { _, e -> CrashReporter.logCoroutineError(e) },
+    )
 
     val conn = MutableStateFlow(ConnState())
     val scanItems = MutableStateFlow<List<ScanItem>>(emptyList())
@@ -141,9 +147,18 @@ object MuseHub {
         appContext = context.applicationContext
         prefs = Prefs(appContext)
         appContextSet = true
+        CrashReporter.install(appContext)
+        // 上次崩溃提示（一次性）
+        CrashReporter.lastCrashName(appContext)?.let { name ->
+            pushLog("上次异常记录: $name (Download/MuseRecorder)", LogKind.ERROR)
+        }
         qualityEst = QualityEstimator { levels, headOn ->
             quality.value = QualityState(levels.copyOf(), headOn)
             recorder.setHsi(levels)
+        }
+        recorder.onFatal = { msg ->
+            errors.value = msg
+            pushLog(msg, LogKind.ERROR)
         }
         // 状态联动：断开/恢复时写入标记
         scope.launch {
