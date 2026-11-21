@@ -10,14 +10,13 @@ import org.junit.Test
 class EventsTest {
 
     @Test
-    fun `replace auto-closes previous with correct interval`() {
+    fun `select anytime opens and replace auto-closes`() {
         var clock = 1000L
         val closed = ArrayList<EventRecord>()
         val t = EventTracker(clock = { clock }, onClosed = { closed.add(it) })
-        t.onRecordingStarted()
-        assertNull(t.active.value)   // 无已选 → 不开启
+        assertNull(t.active.value)
 
-        t.select("闭眼静息")       // 记录中：立即开启
+        t.select("闭眼静息")       // 随时可选，不依赖记录
         assertEquals("闭眼静息" to 1000L, t.active.value)
         clock = 61000
         t.select("心算任务")       // 换选自动结束上一个
@@ -37,47 +36,12 @@ class EventsTest {
     }
 
     @Test
-    fun `select before recording only remembered`() {
-        var clock = 0L
-        val closed = ArrayList<EventRecord>()
-        val t = EventTracker(clock = { clock }, onClosed = { closed.add(it) })
-        t.select("阅读")             // 未记录：不开区间
-        assertNull(t.active.value)
-        assertEquals("阅读", t.selectedName.value)
-
-        t.onRecordingStarted()       // 记录开始：自动开启已选
-        assertEquals("阅读" to 0L, t.active.value)
-        clock = 5000
-        t.onRecordingStopped()
-        assertEquals(1, closed.size)
-        assertEquals(0L, closed[0].startMs)
-        assertEquals(5000L, closed[0].endMs)
-    }
-
-    @Test
-    fun `new session clears previous events`() {
-        var clock = 0L
-        val closed = ArrayList<EventRecord>()
-        val t = EventTracker(clock = { clock }, onClosed = { closed.add(it) })
-        t.onRecordingStarted()
-        t.select("A")
-        clock = 100
-        t.closeCurrent()
-        assertEquals(1, t.sessionEvents.value.size)
-        t.onRecordingStopped()
-        t.onRecordingStarted()       // 新会话清空
-        assertEquals(0, t.sessionEvents.value.size)
-        assertEquals(1, closed.size) // 历史写入不受影响
-    }
-
-    @Test
     fun `note attaches to ongoing event only`() {
         var clock = 10L
         val closed = ArrayList<EventRecord>()
         val t = EventTracker(clock = { clock }, onClosed = { closed.add(it) })
         t.setNote("ignored")         // 无进行中事件 → 忽略
         assertEquals("", t.activeNote.value)
-        t.onRecordingStarted()
         t.select("任务A")
         t.setNote("第 3 组, 含逗号")
         clock = 6010

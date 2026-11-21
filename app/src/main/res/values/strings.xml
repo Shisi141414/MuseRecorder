@@ -213,6 +213,11 @@
     <string name="event_note_fmt">备注：%1$s</string>
     <string name="manage_presets">管理预设</string>
     <string name="manage_presets_title">管理事件预设</string>
+    <string name="event_select_hint">选择当前事件（更换即自动结束上一个）</string>
+    <string name="event_ongoing_elapsed_fmt">进行中 %1$02d:%2$02d</string>
+    <string name="preset_rename">改名</string>
+    <string name="preset_delete">删除</string>
+    <string name="event_group_recording">· 录制中</string>
     <string name="event_preset_rename">重命名预设</string>
     <string name="event_preset_new">新预设名称</string>
     <string name="event_preset_delete">选择要删除的预设</string>

@@ -93,11 +93,38 @@ object MuseHub {
     /** 事件旁路文件（随记录会话开合）；惰性初始化，避免对象加载时访问未就绪的 appContext */
     val eventFileStore: EventFileStore by lazy { EventFileStore(appContext) }
 
-    /** 当前事件跟踪（换选自动结束上一个；结束写入 _events.csv） */
+    /** 当前事件跟踪（随时可选/结束，不依赖脑电记录） */
     val tracker = EventTracker(
         clock = { System.currentTimeMillis() },
-        onClosed = { rec -> scope.launch(Dispatchers.IO) { eventFileStore.write(rec) } },
+        onClosed = { rec -> scope.launch(Dispatchers.IO) { writeEventRecord(rec) } },
     )
+
+    /**
+     * 事件落盘：按需打开事件表——
+     *  - 记录中 → <脑电记录名>_events.csv（与该次脑电同组）
+     *  - 非记录中 → 独立 Events_<时间>_events.csv
+     */
+    private fun writeEventRecord(rec: EventRecord) {
+        try {
+            if (!eventFileStore.isOpen) {
+                val recName = if (recorder.isRecording) recorder.state.value?.fileName else null
+                val name = recName ?: ("Events_" +
+                    java.text.SimpleDateFormat("yyyy-MM-dd_HH.mm", Locale.US)
+                        .format(java.util.Date(rec.startMs)) + ".csv")
+                if (!eventFileStore.open(name)) return
+                tracker.sessionEvents.value = emptyList()
+            }
+            eventFileStore.write(rec)
+        } catch (_: Exception) {
+        }
+    }
+
+    /** 关闭当前事件表（无进行中事件时） */
+    fun closeEventFileIfIdle() {
+        if (tracker.active.value == null && eventFileStore.isOpen) {
+            scope.launch(Dispatchers.IO) { eventFileStore.close() }
+        }
+    }
 
     /** 事件预设（首次读取按语言注入默认值） */
     fun defaultEventPresets(): List<String> =
@@ -180,8 +207,6 @@ object MuseHub {
         CrashReporter.lastCrashName(appContext)?.let { name ->
             pushLog("上次异常记录: $name (Download/MuseRecorder)", LogKind.ERROR)
         }
-        // 恢复上次选择的事件
-        tracker.selectedName.value = prefs.lastEventName.takeIf { it.isNotBlank() }
         qualityEst = QualityEstimator { levels, headOn ->
             quality.value = QualityState(levels.copyOf(), headOn)
             recorder.setHsi(levels)
@@ -189,8 +214,7 @@ object MuseHub {
         recorder.onFatal = { msg ->
             errors.value = msg
             pushLog(msg, LogKind.ERROR)
-            tracker.onRecordingStopped()
-            scope.launch(Dispatchers.IO) { eventFileStore.close() }
+            closeEventFileIfIdle()
         }
         // 状态联动：断开/恢复时写入标记
         scope.launch {
@@ -304,9 +328,9 @@ object MuseHub {
             }
             recorder.setBattery(battery.value)
             startService()
-            // 事件旁路文件 + 自动开启已选事件（主 CSV 不写事件标记）
-            if (eventFileStore.open(name)) {
-                tracker.onRecordingStarted()
+            // 开始新脑电记录：关闭独立事件表，后续事件将落入本次记录的事件表
+            if (eventFileStore.isOpen) {
+                scope.launch(Dispatchers.IO) { eventFileStore.close() }
             }
         }
         return true
@@ -317,9 +341,8 @@ object MuseHub {
     }
 
     private suspend fun stopRecordingInternal() {
-        tracker.onRecordingStopped()
-        scope.launch(Dispatchers.IO) { eventFileStore.close() }
         recorder.stop()
+        closeEventFileIfIdle()
     }
 
     fun addMarker(label: String) {

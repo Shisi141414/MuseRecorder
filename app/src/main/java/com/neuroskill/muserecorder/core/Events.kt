@@ -27,9 +27,9 @@ data class EventRecord(
 )
 
 /**
- * 当前事件跟踪：选择预设事件 → 记录中开启区间（换选自动结束上一个）。
+ * 当前事件跟踪：选择预设事件 → 立即开启区间（随时可选/结束，不依赖脑电记录）。
  * 纯状态机（时间可注入，可单元测试）；落盘由 [EventFileStore] 负责。
- * 主 CSV 不写任何事件标记，事件仅存 <记录名>_events.csv。
+ * 主 CSV 不写任何事件标记，事件仅存 *_events.csv。
  */
 class EventTracker(
     private val clock: () -> Long,
@@ -38,37 +38,18 @@ class EventTracker(
     /** 进行中的事件：name to startMs */
     val active = MutableStateFlow<Pair<String, Long>?>(null)
     val activeNote = MutableStateFlow("")
-    val selectedName = MutableStateFlow<String?>(null)
 
-    /** 当前记录会话内已完成的事件（不含进行中） */
+    /** 当前事件组（当前打开的事件表文件）内已完成的事件 */
     val sessionEvents = MutableStateFlow<List<EventRecord>>(emptyList())
 
-    private var openStart = 0L
-    private var sessionActive = false
-
-    /** 选择事件（null = 取消选择）；更换即自动结束上一个；未在记录中仅记住选择 */
-    fun select(name: String?) {
-        selectedName.value = name
+    /** 选择事件：立即开启（换选自动结束上一个） */
+    fun select(name: String) {
         closeCurrent()
-        if (name != null && sessionActive) open(name)
+        active.value = name to clock()
+        activeNote.value = ""
     }
 
-    /** 记录开始：清空会话事件；若有已选事件则自动开启区间 */
-    fun onRecordingStarted() {
-        sessionActive = true
-        sessionEvents.value = emptyList()
-        selectedName.value?.let { name ->
-            if (active.value == null) open(name)
-        }
-    }
-
-    /** 记录结束：关闭未完结事件 */
-    fun onRecordingStopped() {
-        sessionActive = false
-        closeCurrent()
-    }
-
-    /** 手动结束当前事件（卡片「结束」按钮） */
+    /** 结束当前事件 */
     fun closeCurrent() {
         val cur = active.value ?: return
         val rec = EventRecord(cur.first, cur.second, clock(), activeNote.value)
@@ -81,12 +62,6 @@ class EventTracker(
     /** 修改当前事件备注（仅进行中有效） */
     fun setNote(text: String) {
         if (active.value != null) activeNote.value = text
-    }
-
-    private fun open(name: String) {
-        openStart = clock()
-        active.value = name to openStart
-        activeNote.value = ""
     }
 }
 
@@ -108,6 +83,8 @@ class EventFileStore(private val context: Context) {
     private var filePath: File? = null
     var fileName: String? = null
         private set
+
+    val isOpen: Boolean get() = sink != null
 
     /** 打开（写表头）；失败返回 false */
     fun open(baseCsvName: String): Boolean {

@@ -73,7 +73,6 @@ class OverviewFragment : Fragment() {
         }
         viewLifecycleOwner.lifecycleScope.launch { MuseHub.tracker.active.collect { renderEventCard() } }
         viewLifecycleOwner.lifecycleScope.launch { MuseHub.tracker.activeNote.collect { renderEventCard() } }
-        viewLifecycleOwner.lifecycleScope.launch { MuseHub.tracker.selectedName.collect { renderEventCard() } }
         binding.eventCard.setOnClickListener { showEventPopup() }
         binding.btnEventEnd.setOnClickListener { MuseHub.tracker.closeCurrent() }
         binding.eventNoteRow.setOnClickListener { showNoteDialog() }
@@ -110,47 +109,145 @@ class OverviewFragment : Fragment() {
             binding.eventRowActive.visibility = View.GONE
             binding.eventNoteRow.visibility = View.GONE
             binding.eventCard.setBackgroundResource(R.drawable.event_card_bg)
-            val sel = MuseHub.tracker.selectedName.value
+            val sel = MuseHub.prefs.lastEventName.takeIf { it.isNotBlank() }
             binding.eventName.text = sel ?: getString(R.string.current_event_none)
         }
     }
 
+    /** 下拉面板：预设项（含单选圆点与进行中时长）+ 底部「管理预设」 */
     private fun showEventPopup() {
-        val pm = android.widget.PopupMenu(requireContext(), binding.eventCard)
+        val ctx = requireContext()
         val presets = MuseHub.eventPresets()
-        presets.forEachIndexed { i, name -> pm.menu.add(0, i, 0, name) }
-        pm.menu.add(1, 99, 0, getString(R.string.manage_presets))
-        pm.setOnMenuItemClickListener { mi ->
-            if (mi.itemId == 99) {
-                showPresetManager()
-            } else {
-                MuseHub.selectEvent(presets[mi.itemId])
-                renderEventCard()
+        val active = MuseHub.tracker.active.value
+
+        val container = LinearLayout(ctx).apply {
+            orientation = LinearLayout.VERTICAL
+            background = android.graphics.drawable.GradientDrawable().apply {
+                setColor(0xFFFFFFFF.toInt())
+                cornerRadius = 14 * resources.displayMetrics.density
             }
-            true
+            elevation = 12 * resources.displayMetrics.density
         }
-        pm.show()
+        val title = TextView(ctx).apply {
+            text = getString(R.string.event_select_hint)
+            setPadding(
+                (14 * resources.displayMetrics.density).toInt(),
+                (10 * resources.displayMetrics.density).toInt(),
+                (14 * resources.displayMetrics.density).toInt(),
+                (4 * resources.displayMetrics.density).toInt(),
+            )
+            textSize = 10.5f
+            setTextColor(0xFF8A90A4.toInt())
+            setTypeface(typeface, android.graphics.Typeface.BOLD)
+        }
+        container.addView(title)
+
+        presets.forEach { name ->
+            val row = layoutInflater.inflate(R.layout.item_event_option, container, false)
+            row.findViewById<TextView>(R.id.optName).text = name
+            row.findViewById<TextView>(R.id.optName).setTextColor(0xFF2C3350.toInt())
+            val isActive = active?.first == name
+            row.findViewById<View>(R.id.optDot).setBackgroundResource(
+                if (isActive) R.drawable.radio_dot else R.drawable.radio_ring,
+            )
+            if (isActive) {
+                val elapsed = (System.currentTimeMillis() - active.second) / 1000
+                row.findViewById<TextView>(R.id.optSub).apply {
+                    text = getString(R.string.event_ongoing_elapsed_fmt, elapsed / 60, elapsed % 60)
+                    visibility = View.VISIBLE
+                }
+            }
+            row.setOnClickListener {
+                MuseHub.selectEvent(name)
+                renderEventCard()
+                eventPopup?.dismiss()
+            }
+            container.addView(row)
+        }
+
+        val manage = TextView(ctx).apply {
+            text = getString(R.string.manage_presets)
+            gravity = Gravity.CENTER
+            setPadding(0, (11 * resources.displayMetrics.density).toInt(), 0, (11 * resources.displayMetrics.density).toInt())
+            textSize = 14f
+            setTextColor(0xFF4355B9.toInt())
+            setTypeface(typeface, android.graphics.Typeface.BOLD)
+            val params = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT,
+            )
+            params.topMargin = (4 * resources.displayMetrics.density).toInt()
+            layoutParams = params
+        }
+        manage.setOnClickListener {
+            eventPopup?.dismiss()
+            showPresetManager()
+        }
+        container.addView(manage)
+
+        val width = binding.eventCard.width
+        val popup = android.widget.PopupWindow(
+            container, width.coerceAtLeast((260 * resources.displayMetrics.density).toInt()),
+            ViewGroup.LayoutParams.WRAP_CONTENT, true,
+        )
+        popup.elevation = 12 * resources.displayMetrics.density
+        popup.isOutsideTouchable = true
+        popup.showAsDropDown(binding.eventCard, 0, 4)
+        eventPopup = popup
     }
+
+    private var eventPopup: android.widget.PopupWindow? = null
 
     private fun showPresetManager() {
-        val presets = MuseHub.eventPresets().toMutableList()
-        val names = presets.toTypedArray()
-        val builder = androidx.appcompat.app.AlertDialog.Builder(requireContext())
-            .setTitle(R.string.manage_presets_title)
+        val ctx = requireContext()
+        val view = layoutInflater.inflate(R.layout.dialog_manage_presets, null)
+        val rows = view.findViewById<LinearLayout>(R.id.presetRows)
+        val input = view.findViewById<EditText>(R.id.presetInput)
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(ctx)
+            .setView(view)
             .setNegativeButton(R.string.cancel, null)
-        builder.setItems(names.map { "✎  $it" }.toTypedArray()) { _, which ->
-            showRenameDialog(presets, which)
+            .create()
+
+        fun rebuild() {
+            rows.removeAllViews()
+            val presets = MuseHub.eventPresets()
+            presets.forEachIndexed { index, name ->
+                val row = layoutInflater.inflate(R.layout.item_preset_row, rows, false)
+                row.findViewById<TextView>(R.id.presetName).text = name
+                row.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnPresetRename)
+                    .setOnClickListener {
+                        showRenameDialog(presets.toMutableList(), index) { rebuild() }
+                    }
+                row.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnPresetDelete)
+                    .setOnClickListener {
+                        val list = MuseHub.eventPresets().toMutableList()
+                        if (index < list.size) {
+                            list.removeAt(index)
+                            MuseHub.setEventPresets(list)
+                            rebuild()
+                        }
+                    }
+                rows.addView(row)
+            }
         }
-        builder.setPositiveButton(R.string.add) { _, _ ->
-            showAddPresetDialog(presets)
-        }
-        builder.setNeutralButton(R.string.delete) { _, _ ->
-            showDeletePresetDialog(presets)
-        }
-        builder.show()
+        rebuild()
+
+        view.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnPresetAdd)
+            .setOnClickListener {
+                val t = input.text.toString().trim()
+                if (t.isNotEmpty()) {
+                    val list = MuseHub.eventPresets().toMutableList()
+                    if (!list.contains(t)) {
+                        list.add(t)
+                        MuseHub.setEventPresets(list)
+                    }
+                    input.text.clear()
+                    rebuild()
+                }
+            }
+        dialog.show()
     }
 
-    private fun showRenameDialog(presets: MutableList<String>, index: Int) {
+    private fun showRenameDialog(presets: MutableList<String>, index: Int, onDone: () -> Unit) {
         val input = EditText(requireContext()).apply {
             text.insert(0, presets[index])
         }
@@ -159,40 +256,11 @@ class OverviewFragment : Fragment() {
             .setView(input)
             .setPositiveButton(R.string.ok) { _, _ ->
                 val t = input.text.toString().trim()
-                if (t.isNotEmpty()) {
+                if (t.isNotEmpty() && index < presets.size) {
                     presets[index] = t
                     MuseHub.setEventPresets(presets)
+                    onDone()
                 }
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
-    }
-
-    private fun showAddPresetDialog(presets: MutableList<String>) {
-        val input = EditText(requireContext())
-        androidx.appcompat.app.AlertDialog.Builder(requireContext())
-            .setTitle(R.string.event_preset_new)
-            .setView(input)
-            .setPositiveButton(R.string.ok) { _, _ ->
-                val t = input.text.toString().trim()
-                if (t.isNotEmpty() && !presets.contains(t)) {
-                    presets.add(t)
-                    MuseHub.setEventPresets(presets)
-                }
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
-    }
-
-    private fun showDeletePresetDialog(presets: MutableList<String>) {
-        val names = presets.toTypedArray()
-        val checked = BooleanArray(names.size)
-        androidx.appcompat.app.AlertDialog.Builder(requireContext())
-            .setTitle(R.string.event_preset_delete)
-            .setMultiChoiceItems(names, checked) { _, _, _ -> }
-            .setPositiveButton(R.string.delete) { _, _ ->
-                val kept = presets.filterIndexed { i, _ -> !checked[i] }
-                MuseHub.setEventPresets(kept)
             }
             .setNegativeButton(R.string.cancel, null)
             .show()

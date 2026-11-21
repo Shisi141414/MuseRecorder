@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/presetName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingVertical="12dp"
+        android:paddingStart="18dp"
+        android:paddingEnd="8dp"
+        android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="end|center_vertical"
+        android:orientation="horizontal"
+        android:paddingBottom="8dp"
+        android:paddingEnd="12dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPresetRename"
+            style="@style/PresetSmallBtn"
+            android:text="@string/preset_rename" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPresetDelete"
+            style="@style/PresetSmallBtn"
+            android:text="@string/preset_delete"
+            android:textColor="@color/bad" />
+    </LinearLayout>
+</LinearLayout>
