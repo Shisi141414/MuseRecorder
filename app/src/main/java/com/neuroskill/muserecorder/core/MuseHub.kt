@@ -90,8 +90,8 @@ object MuseHub {
 
     // ---------------- 当前事件（v1.6.0） ----------------
 
-    /** 事件旁路文件（随记录会话开合） */
-    val eventFileStore = EventFileStore(appContext)
+    /** 事件旁路文件（随记录会话开合）；惰性初始化，避免对象加载时访问未就绪的 appContext */
+    val eventFileStore: EventFileStore by lazy { EventFileStore(appContext) }
 
     /** 当前事件跟踪（换选自动结束上一个；结束写入 _events.csv） */
     val tracker = EventTracker(
