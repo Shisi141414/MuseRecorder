@@ -139,8 +139,10 @@ object MuseHub {
     fun setEventPresets(list: List<String>) = prefs.setEventPresets(list)
 
     fun selectEvent(name: String?) {
-        tracker.select(name)
-        prefs.lastEventName = name ?: ""
+        if (name != null) {
+            tracker.select(name)
+            prefs.lastEventName = name
+        }
     }
 
     /** 波形环形缓冲（4 通道 × 8 秒） */
