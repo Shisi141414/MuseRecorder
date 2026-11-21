@@ -57,6 +57,24 @@ class Prefs(context: Context) {
         get() = sp.getString("lastDeviceAddress", "") ?: ""
         set(v) = sp.edit { putString("lastDeviceAddress", v) }
 
+    /** 事件预设列表（逗号安全：用 \u0001 分隔存储） */
+    fun eventPresets(defaults: List<String>): List<String> {
+        val raw = sp.getString("eventPresets", null)
+        if (raw != null) {
+            return raw.split('\u0001').filter { it.isNotBlank() }
+        }
+        return defaults
+    }
+
+    fun setEventPresets(list: List<String>) {
+        sp.edit { putString("eventPresets", list.joinToString("\u0001")) }
+    }
+
+    /** 上次选择的事件名（跨会话记住） */
+    var lastEventName: String
+        get() = sp.getString("lastEventName", "") ?: ""
+        set(v) = sp.edit { putString("lastEventName", v) }
+
     /** 标注按钮文字（1..9） */
     fun markerLabel(i: Int): String = sp.getString("marker$i", i.toString()) ?: i.toString()
 

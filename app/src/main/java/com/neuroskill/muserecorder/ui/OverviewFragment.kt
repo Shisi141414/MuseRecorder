@@ -25,6 +25,7 @@ import com.neuroskill.muserecorder.databinding.FragmentOverviewBinding
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 /**
  * 总览页（设计稿 v2 + 电池 v3）：
@@ -63,6 +64,20 @@ class OverviewFragment : Fragment() {
             MuseHub.recorder.state.collect { renderRecordButton() }
         }
 
+        // 当前事件（v1.6.0，仅插入）
+        viewLifecycleOwner.lifecycleScope.launch {
+            while (isActive) {
+                renderEventCard()
+                delay(1000)
+            }
+        }
+        viewLifecycleOwner.lifecycleScope.launch { MuseHub.tracker.active.collect { renderEventCard() } }
+        viewLifecycleOwner.lifecycleScope.launch { MuseHub.tracker.activeNote.collect { renderEventCard() } }
+        viewLifecycleOwner.lifecycleScope.launch { MuseHub.tracker.selectedName.collect { renderEventCard() } }
+        binding.eventCard.setOnClickListener { showEventPopup() }
+        binding.btnEventEnd.setOnClickListener { MuseHub.tracker.closeCurrent() }
+        binding.eventNoteRow.setOnClickListener { showNoteDialog() }
+
         binding.btnConnect.setOnClickListener { onConnectClicked() }
         binding.btnRec.setOnClickListener { onRecordClicked() }
         binding.btnViewMode.setOnClickListener {
@@ -71,6 +86,131 @@ class OverviewFragment : Fragment() {
             Toast.makeText(requireContext(), modeName(m), Toast.LENGTH_SHORT).show()
         }
         buildMarkerButtons()
+    }
+
+    // ---------------- 当前事件（v1.6.0，仅插入） ----------------
+
+    private fun renderEventCard() {
+        val active = MuseHub.tracker.active.value
+        if (active != null) {
+            binding.eventRowIdle.visibility = View.GONE
+            binding.eventRowActive.visibility = View.VISIBLE
+            binding.eventNoteRow.visibility = View.VISIBLE
+            binding.eventCard.setBackgroundResource(R.drawable.event_card_bg_active)
+            binding.eventActiveName.text = active.first
+            val elapsed = (System.currentTimeMillis() - active.second) / 1000
+            binding.eventTime.text = String.format(
+                Locale.US, "%02d:%02d", elapsed / 60, elapsed % 60,
+            )
+            val note = MuseHub.tracker.activeNote.value
+            binding.eventNoteText.text =
+                note.ifBlank { getString(R.string.event_note_add) }
+        } else {
+            binding.eventRowIdle.visibility = View.VISIBLE
+            binding.eventRowActive.visibility = View.GONE
+            binding.eventNoteRow.visibility = View.GONE
+            binding.eventCard.setBackgroundResource(R.drawable.event_card_bg)
+            val sel = MuseHub.tracker.selectedName.value
+            binding.eventName.text = sel ?: getString(R.string.current_event_none)
+        }
+    }
+
+    private fun showEventPopup() {
+        val pm = android.widget.PopupMenu(requireContext(), binding.eventCard)
+        val presets = MuseHub.eventPresets()
+        presets.forEachIndexed { i, name -> pm.menu.add(0, i, 0, name) }
+        pm.menu.add(1, 99, 0, getString(R.string.manage_presets))
+        pm.setOnMenuItemClickListener { mi ->
+            if (mi.itemId == 99) {
+                showPresetManager()
+            } else {
+                MuseHub.selectEvent(presets[mi.itemId])
+                renderEventCard()
+            }
+            true
+        }
+        pm.show()
+    }
+
+    private fun showPresetManager() {
+        val presets = MuseHub.eventPresets().toMutableList()
+        val names = presets.toTypedArray()
+        val builder = androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle(R.string.manage_presets_title)
+            .setNegativeButton(R.string.cancel, null)
+        builder.setItems(names.map { "✎  $it" }.toTypedArray()) { _, which ->
+            showRenameDialog(presets, which)
+        }
+        builder.setPositiveButton(R.string.add) { _, _ ->
+            showAddPresetDialog(presets)
+        }
+        builder.setNeutralButton(R.string.delete) { _, _ ->
+            showDeletePresetDialog(presets)
+        }
+        builder.show()
+    }
+
+    private fun showRenameDialog(presets: MutableList<String>, index: Int) {
+        val input = EditText(requireContext()).apply {
+            text.insert(0, presets[index])
+        }
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle(R.string.event_preset_rename)
+            .setView(input)
+            .setPositiveButton(R.string.ok) { _, _ ->
+                val t = input.text.toString().trim()
+                if (t.isNotEmpty()) {
+                    presets[index] = t
+                    MuseHub.setEventPresets(presets)
+                }
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun showAddPresetDialog(presets: MutableList<String>) {
+        val input = EditText(requireContext())
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle(R.string.event_preset_new)
+            .setView(input)
+            .setPositiveButton(R.string.ok) { _, _ ->
+                val t = input.text.toString().trim()
+                if (t.isNotEmpty() && !presets.contains(t)) {
+                    presets.add(t)
+                    MuseHub.setEventPresets(presets)
+                }
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun showDeletePresetDialog(presets: MutableList<String>) {
+        val names = presets.toTypedArray()
+        val checked = BooleanArray(names.size)
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle(R.string.event_preset_delete)
+            .setMultiChoiceItems(names, checked) { _, _, _ -> }
+            .setPositiveButton(R.string.delete) { _, _ ->
+                val kept = presets.filterIndexed { i, _ -> !checked[i] }
+                MuseHub.setEventPresets(kept)
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun showNoteDialog() {
+        val input = EditText(requireContext()).apply {
+            text.insert(0, MuseHub.tracker.activeNote.value)
+        }
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle(R.string.event_note)
+            .setView(input)
+            .setPositiveButton(R.string.ok) { _, _ ->
+                MuseHub.tracker.setNote(input.text.toString().trim())
+                renderEventCard()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     private fun modeName(m: EegWaveView.Mode): String = when (m) {

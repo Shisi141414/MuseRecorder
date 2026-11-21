@@ -202,4 +202,28 @@
     <string name="gatt_full">连接数已满</string>
     <string name="gatt_133">GATT 通用错误(133)</string>
     <string name="gatt_257">内部错误(257)</string>
+
+    <!-- 当前事件（v1.6.0） -->
+    <string name="current_event">当前事件</string>
+    <string name="current_event_none">点击选择</string>
+    <string name="event_ongoing">进行中</string>
+    <string name="event_end">结束</string>
+    <string name="event_note">备注</string>
+    <string name="event_note_add">＋ 添加备注</string>
+    <string name="event_note_fmt">备注：%1$s</string>
+    <string name="manage_presets">管理预设</string>
+    <string name="manage_presets_title">管理事件预设</string>
+    <string name="event_preset_rename">重命名预设</string>
+    <string name="event_preset_new">新预设名称</string>
+    <string name="event_preset_delete">选择要删除的预设</string>
+    <string name="add">添加</string>
+    <string name="nav_files_entry">数据文件</string>
+    <string name="nav_events_entry">事件记录</string>
+    <string name="file_entry_sub_fmt">最近 %1$d 条 · 全部 %2$d</string>
+    <string name="event_entry_sub_fmt">本次 %1$d 个 · 全部 %2$d</string>
+    <string name="events_empty">暂无事件记录（在总览页「当前事件」选择活动后自动记录）</string>
+    <string name="events_session_recording_fmt">%1$s · 录制中</string>
+    <string name="events_share_current">分享本次事件表</string>
+    <string name="events_delete_current">删除本次事件表</string>
+    <string name="events_delete_confirm">删除事件表 %1$s？</string>
 </resources>

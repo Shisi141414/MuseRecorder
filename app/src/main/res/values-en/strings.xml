@@ -202,4 +202,28 @@
     <string name="gatt_full">Too many connections</string>
     <string name="gatt_133">GATT error (133)</string>
     <string name="gatt_257">Internal error (257)</string>
+
+    <!-- Current event (v1.6.0) -->
+    <string name="current_event">Current event</string>
+    <string name="current_event_none">Tap to select</string>
+    <string name="event_ongoing">Ongoing</string>
+    <string name="event_end">End</string>
+    <string name="event_note">Note</string>
+    <string name="event_note_add">＋ Add note</string>
+    <string name="event_note_fmt">Note: %1$s</string>
+    <string name="manage_presets">Manage presets</string>
+    <string name="manage_presets_title">Manage event presets</string>
+    <string name="event_preset_rename">Rename preset</string>
+    <string name="event_preset_new">New preset name</string>
+    <string name="event_preset_delete">Select presets to delete</string>
+    <string name="add">Add</string>
+    <string name="nav_files_entry">Data files</string>
+    <string name="nav_events_entry">Event records</string>
+    <string name="file_entry_sub_fmt">Recent %1$d · all %2$d</string>
+    <string name="event_entry_sub_fmt">%1$d this session · %2$d total</string>
+    <string name="events_empty">No events yet (select an activity via Current event on the overview page)</string>
+    <string name="events_session_recording_fmt">%1$s · recording</string>
+    <string name="events_share_current">Share this session\'s events</string>
+    <string name="events_delete_current">Delete this session\'s events</string>
+    <string name="events_delete_confirm">Delete %1$s?</string>
 </resources>

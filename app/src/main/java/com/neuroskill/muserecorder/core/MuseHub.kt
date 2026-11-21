@@ -88,6 +88,34 @@ object MuseHub {
 
     val recorder: CsvRecorder by lazy { CsvRecorder(appContext) }
 
+    // ---------------- 当前事件（v1.6.0） ----------------
+
+    /** 事件旁路文件（随记录会话开合） */
+    val eventFileStore = EventFileStore(appContext)
+
+    /** 当前事件跟踪（换选自动结束上一个；结束写入 _events.csv） */
+    val tracker = EventTracker(
+        clock = { System.currentTimeMillis() },
+        onClosed = { rec -> scope.launch(Dispatchers.IO) { eventFileStore.write(rec) } },
+    )
+
+    /** 事件预设（首次读取按语言注入默认值） */
+    fun defaultEventPresets(): List<String> =
+        if (Locale.getDefault().language == "zh") {
+            listOf("闭眼静息", "睁眼静息", "心算任务", "观看视频", "阅读")
+        } else {
+            listOf("Eyes closed rest", "Eyes open rest", "Mental arithmetic", "Watching video", "Reading")
+        }
+
+    fun eventPresets(): List<String> = prefs.eventPresets(defaultEventPresets())
+
+    fun setEventPresets(list: List<String>) = prefs.setEventPresets(list)
+
+    fun selectEvent(name: String?) {
+        tracker.select(name)
+        prefs.lastEventName = name ?: ""
+    }
+
     /** 波形环形缓冲（4 通道 × 8 秒） */
     class WaveBuffer(val channels: Int, val capacity: Int) {
         val data = Array(channels) { FloatArray(capacity) }
@@ -152,6 +180,8 @@ object MuseHub {
         CrashReporter.lastCrashName(appContext)?.let { name ->
             pushLog("上次异常记录: $name (Download/MuseRecorder)", LogKind.ERROR)
         }
+        // 恢复上次选择的事件
+        tracker.selectedName.value = prefs.lastEventName.takeIf { it.isNotBlank() }
         qualityEst = QualityEstimator { levels, headOn ->
             quality.value = QualityState(levels.copyOf(), headOn)
             recorder.setHsi(levels)
@@ -159,6 +189,8 @@ object MuseHub {
         recorder.onFatal = { msg ->
             errors.value = msg
             pushLog(msg, LogKind.ERROR)
+            tracker.onRecordingStopped()
+            scope.launch(Dispatchers.IO) { eventFileStore.close() }
         }
         // 状态联动：断开/恢复时写入标记
         scope.launch {
@@ -234,7 +266,7 @@ object MuseHub {
         if (recorder.isRecording) {
             scope.launch {
                 recorder.addMarker("RecordingStopped_Disconnect")
-                recorder.stop()
+                stopRecordingInternal()
                 ble.disconnect()
             }
         } else {
@@ -272,11 +304,21 @@ object MuseHub {
             }
             recorder.setBattery(battery.value)
             startService()
+            // 事件旁路文件 + 自动开启已选事件（主 CSV 不写事件标记）
+            if (eventFileStore.open(name)) {
+                tracker.onRecordingStarted()
+            }
         }
         return true
     }
 
     suspend fun stopRecording() {
+        stopRecordingInternal()
+    }
+
+    private suspend fun stopRecordingInternal() {
+        tracker.onRecordingStopped()
+        scope.launch(Dispatchers.IO) { eventFileStore.close() }
         recorder.stop()
     }
 

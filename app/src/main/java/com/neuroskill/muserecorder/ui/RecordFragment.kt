@@ -55,8 +55,21 @@ class RecordFragment : Fragment() {
         binding.btnMore.setOnClickListener {
             FileBrowserDialog().show(childFragmentManager, "fileBrowser")
         }
+        binding.fileEntry.setOnClickListener {
+            FileBrowserDialog().show(childFragmentManager, "fileBrowser")
+        }
+        binding.eventEntry.setOnClickListener {
+            EventListDialog().show(childFragmentManager, "eventList")
+        }
         binding.btnCustomMarker.setOnClickListener { showCustomMarkerDialog() }
         buildMarkerButtons()
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            MuseHub.tracker.sessionEvents.collect { renderEntrySubs() }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            MuseHub.tracker.active.collect { renderEntrySubs() }
+        }
 
         viewLifecycleOwner.lifecycleScope.launch {
             while (isActive) {
@@ -85,7 +98,31 @@ class RecordFragment : Fragment() {
             binding.btnMore.visibility =
                 if (allFiles.size > RECENT_LIMIT) View.VISIBLE else View.GONE
             binding.btnMore.text = getString(R.string.more_files_fmt, allFiles.size)
+            renderEntrySubs()
         }
+    }
+
+    /** 双入口副标题计数 */
+    private fun renderEntrySubs() {
+        val n = allFiles.size
+        binding.fileEntrySub.text =
+            getString(R.string.file_entry_sub_fmt, minOf(n, RECENT_LIMIT), n)
+        val cur = MuseHub.tracker.sessionEvents.value.size +
+            (if (MuseHub.tracker.active.value != null) 1 else 0)
+        viewLifecycleOwner.lifecycleScope.launch {
+            val total = withContext(Dispatchers.IO) { countTotalEvents() }
+            binding.eventEntrySub.text =
+                getString(R.string.event_entry_sub_fmt, cur, total + cur)
+        }
+    }
+
+    private fun countTotalEvents(): Int {
+        var count = 0
+        for (f in FileStore.listEvents(requireContext())) {
+            val text = FileStore.readText(requireContext(), f) ?: continue
+            count += text.lineSequence().count { it.isNotBlank() && !it.startsWith("Event,") }
+        }
+        return count
     }
 
     private fun toggleRecording() {
