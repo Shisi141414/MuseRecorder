@@ -4,69 +4,97 @@
     android:layout_height="wrap_content"
     android:layout_marginBottom="7dp"
     android:background="@drawable/event_item_bg"
-    android:gravity="center_vertical"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     android:paddingStart="12dp"
     android:paddingEnd="12dp"
     android:paddingTop="10dp"
     android:paddingBottom="10dp">
 
-    <View
-        android:id="@+id/evBar"
-        android:layout_width="4dp"
-        android:layout_height="34dp"
-        android:layout_marginEnd="10dp"
-        android:background="@color/primary" />
-
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/evName"
+        <View
+            android:id="@+id/evBar"
+            android:layout_width="4dp"
+            android:layout_height="34dp"
+            android:layout_marginEnd="10dp"
+            android:background="@color/primary" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/evName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/evTimes"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/hintGray"
+                android:textSize="10.5sp" />
+
+            <TextView
+                android:id="@+id/evNote"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="10.5sp"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textStyle="bold" />
+            android:gravity="end"
+            android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/evTimes"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/hintGray"
-            android:textSize="10.5sp" />
+            <TextView
+                android:id="@+id/evDuration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="13sp"
+                android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/evNote"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:textColor="?attr/colorPrimary"
-            android:textSize="10.5sp"
-            android:visibility="gone" />
+            <TextView
+                android:id="@+id/evDurSub"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/hintGray"
+                android:textSize="10sp" />
+        </LinearLayout>
     </LinearLayout>
 
+    <!-- 点击行展开的操作区（分享/删除，与预设管理同款小按钮） -->
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:id="@+id/evActions"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="end"
-        android:orientation="vertical">
+        android:layout_marginTop="8dp"
+        android:gravity="end|center_vertical"
+        android:orientation="horizontal"
+        android:visibility="gone">
 
-        <TextView
-            android:id="@+id/evDuration"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="?attr/colorPrimary"
-            android:textSize="13sp"
-            android:textStyle="bold" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnEvShare"
+            style="@style/PresetSmallBtn"
+            android:text="@string/share" />
 
-        <TextView
-            android:id="@+id/evDurSub"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/hintGray"
-            android:textSize="10sp" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnEvDelete"
+            style="@style/PresetSmallBtn"
+            android:text="@string/delete"
+            android:textColor="@color/bad" />
     </LinearLayout>
 </LinearLayout>

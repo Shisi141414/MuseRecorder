@@ -76,6 +76,11 @@ class EventTracker(
     fun setNote(text: String) {
         if (active.value != null) activeNote.value = text
     }
+
+    /** 从当前会话内存中移除一条事件（单事件删除用） */
+    fun removeEvent(rec: EventRecord) {
+        sessionEvents.value = sessionEvents.value - rec
+    }
 }
 
 /**

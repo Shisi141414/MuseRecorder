@@ -108,6 +108,9 @@
     <string name="files_empty">No files</string>
     <string name="file_delete_confirm">Delete %1$s?</string>
     <string name="file_size_fmt">%1$s</string>
+    <string name="file_meta_fmt">Duration %1$s · ended %2$s · %3$s</string>
+    <string name="event_file_meta_fmt">Events · %1$s · %2$s</string>
+    <string name="event_delete_confirm">Delete event "%1$s"?</string>
     <string name="more_files_fmt">More files (%1$d)</string>
     <string name="file_browser_title">All data files</string>
     <string name="file_search_hint">Search file names</string>

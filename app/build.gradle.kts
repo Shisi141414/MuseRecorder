@@ -19,8 +19,8 @@ android {
         applicationId = "com.neuroskill.muserecorder"
         minSdk = 24
         targetSdk = 35
-        versionCode = 12
-        versionName = "1.8.1"
+        versionCode = 13
+        versionName = "1.8.2"
     }
 
     signingConfigs {

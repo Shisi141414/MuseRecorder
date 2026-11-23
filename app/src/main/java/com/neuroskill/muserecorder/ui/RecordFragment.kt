@@ -1,5 +1,6 @@
 package com.neuroskill.muserecorder.ui
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -13,6 +14,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.neuroskill.muserecorder.R
 import com.neuroskill.muserecorder.ble.ConnStatus
+import com.neuroskill.muserecorder.core.EventFileStore
 import com.neuroskill.muserecorder.core.FileStore
 import com.neuroskill.muserecorder.core.MuseHub
 import com.neuroskill.muserecorder.databinding.FragmentRecordBinding
@@ -281,7 +283,8 @@ class RecordFragment : Fragment() {
     }
 }
 
-/** 文件列表适配器（记录页与文件浏览器共用） */
+/** 文件列表适配器（记录页与文件浏览器共用）
+ *  条目元信息：时长（结束−文件名时间戳）· 结束时间 · 大小；事件表标注；无时间戳回退为修改时间 */
 class FileAdapter(
     private val onShare: (FileStore.RecFile) -> Unit,
     private val onDelete: (FileStore.RecFile) -> Unit,
@@ -298,15 +301,55 @@ class FileAdapter(
 
     override fun onBindViewHolder(holder: VH, position: Int) {
         val f = getItem(position)
+        val ctx = holder.binding.root.context
         holder.binding.fileName.text = f.name
-        holder.binding.fileMeta.text = String.format(
-            Locale.US, "%,d B · %tF %tR",
-            f.size, Date(f.modifiedMs), Date(f.modifiedMs),
-        )
+        holder.binding.fileMeta.text = metaLine(ctx, f)
         holder.binding.btnShareFile.setOnClickListener { onShare(f) }
         holder.binding.root.setOnLongClickListener {
             onDelete(f)
             true
+        }
+    }
+
+    /** 从文件名解析起始时间戳（MuseRecord_2026-11-23_10.02.csv → epoch ms） */
+    private fun startFromName(name: String): Long? {
+        val m = Regex("_(\\d{4})-(\\d{2})-(\\d{2})_(\\d{2})\\.(\\d{2})").find(name) ?: return null
+        return try {
+            java.text.SimpleDateFormat("yyyy-MM-dd HH.mm", java.util.Locale.US)
+                .parse("${m.groupValues[1]}-${m.groupValues[2]}-${m.groupValues[3]} ${m.groupValues[4]}.${m.groupValues[5]}")
+                ?.time
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun fmtDur(sec: Long): String {
+        val h = sec / 3600
+        val m = (sec % 3600) / 60
+        val s = sec % 60
+        return if (h > 0) String.format(java.util.Locale.US, "%d:%02d:%02d", h, m, s)
+        else String.format(java.util.Locale.US, "%02d:%02d", m, s)
+    }
+
+    private fun metaLine(ctx: Context, f: FileStore.RecFile): String {
+        val fmtDateTime = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.US)
+        val size = if (f.size >= 1 shl 20) String.format(java.util.Locale.US, "%.1f MB", f.size / 1048576.0)
+        else String.format(java.util.Locale.US, "%.1f KB", f.size / 1024.0)
+        val isEvent = f.name.endsWith(EventFileStore.SUFFIX)
+        return if (isEvent) {
+            ctx.getString(R.string.event_file_meta_fmt, fmtDateTime.format(java.util.Date(f.modifiedMs)), size)
+        } else {
+            val start = startFromName(f.name)
+            if (start != null && f.modifiedMs > start) {
+                ctx.getString(
+                    R.string.file_meta_fmt,
+                    fmtDur((f.modifiedMs - start) / 1000),
+                    fmtDateTime.format(java.util.Date(f.modifiedMs)),
+                    size,
+                )
+            } else {
+                ctx.getString(R.string.event_file_meta_fmt, fmtDateTime.format(java.util.Date(f.modifiedMs)), size)
+            }
         }
     }
 }

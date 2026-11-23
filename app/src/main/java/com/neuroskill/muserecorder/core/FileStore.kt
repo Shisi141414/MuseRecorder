@@ -81,6 +81,19 @@ object FileStore {
         null
     }
 
+    /** 重写文件内容（单事件删除后回写；IO 线程调用） */
+    fun writeText(context: Context, file: RecFile, text: String): Boolean = try {
+        if (Build.VERSION.SDK_INT >= 29) {
+            context.contentResolver.openOutputStream(file.uri, "wt")?.use { it.write(text.toByteArray()) }
+            true
+        } else {
+            File(file.uri.path!!).writeText(text)
+            true
+        }
+    } catch (_: Exception) {
+        false
+    }
+
     fun shareIntent(context: Context, file: RecFile): Intent {
         val sendIntent = Intent(Intent.ACTION_SEND).apply {
             type = "text/csv"

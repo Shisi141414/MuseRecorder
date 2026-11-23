@@ -108,6 +108,9 @@
     <string name="files_empty">暂无文件</string>
     <string name="file_delete_confirm">删除文件 %1$s？</string>
     <string name="file_size_fmt">%1$s</string>
+    <string name="file_meta_fmt">时长 %1$s · 结束 %2$s · %3$s</string>
+    <string name="event_file_meta_fmt">事件表 · %1$s · %2$s</string>
+    <string name="event_delete_confirm">删除事件「%1$s」？</string>
     <string name="more_files_fmt">更多文件（%1$d）</string>
     <string name="file_browser_title">所有数据文件</string>
     <string name="file_search_hint">搜索文件名</string>

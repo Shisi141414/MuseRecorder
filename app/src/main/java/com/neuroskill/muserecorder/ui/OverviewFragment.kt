@@ -452,11 +452,7 @@ class OverviewFragment : Fragment() {
             binding.btnRec.backgroundTintList = ContextCompat.getColorStateList(ctx, R.color.chipBg)
             binding.btnRec.strokeColor = ContextCompat.getColorStateList(ctx, R.color.bad)
         }
-        // 录制中显示时长需要加宽
-        val density = resources.displayMetrics.density
-        binding.btnRec.layoutParams = (binding.btnRec.layoutParams as android.view.ViewGroup.LayoutParams).apply {
-            width = if (rec != null) (118 * density).toInt() else (92 * density).toInt()
-        }
+        // 宽度由布局自适应（wrap_content + minWidth），无需程序化调整
     }
 
     private fun onRecordClicked() {

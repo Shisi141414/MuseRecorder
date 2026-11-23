@@ -1,18 +1,19 @@
 package com.neuroskill.muserecorder.ui
 
 import android.app.Dialog
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
-import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
 import com.neuroskill.muserecorder.R
 import com.neuroskill.muserecorder.core.EventFileStore
+import com.neuroskill.muserecorder.core.EventRecord
 import com.neuroskill.muserecorder.core.FileStore
 import com.neuroskill.muserecorder.core.MuseHub
 import com.neuroskill.muserecorder.core.parseCsvLine
@@ -26,7 +27,8 @@ import java.util.Locale
 
 /**
  * 事件记录页：按事件表文件（<脑电记录名>_events.csv 或独立 Events_*_events.csv）分组，
- * 条目含事件名、起止时间（与脑电 CSV 毫秒级同源）、备注与时长；支持分享/删除本次事件表。
+ * 条目含事件名、起止时间（与脑电 CSV 毫秒级同源）、备注与时长。
+ * 点击行展开「分享/删除」单事件操作；底部按会话分享/删除整表。
  */
 class EventListDialog : DialogFragment() {
 
@@ -39,6 +41,8 @@ class EventListDialog : DialogFragment() {
         val end: String,
         val note: String,
         val ongoing: Boolean = false,
+        val rec: EventRecord? = null,     // 当前会话内存事件（用于删除）
+        val line: String? = null,         // 文件原始行（用于删除/去重）
     )
 
     private data class Session(
@@ -48,6 +52,7 @@ class EventListDialog : DialogFragment() {
     )
 
     private var currentFileForButtons: FileStore.RecFile? = null
+    private var expandedKey: String? = null
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val d = super.onCreateDialog(savedInstanceState)
@@ -64,7 +69,7 @@ class EventListDialog : DialogFragment() {
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle) {
         super.onViewCreated(view, savedInstanceState)
         binding.btnClose.setOnClickListener { dismiss() }
         binding.btnShareEvents.setOnClickListener { shareCurrent() }
@@ -139,6 +144,19 @@ class EventListDialog : DialogFragment() {
                     item.findViewById<TextView>(R.id.evDuration).text =
                         if (row.ongoing) getString(R.string.event_ongoing) else durationOf(row.start, row.end)
                     item.findViewById<TextView>(R.id.evDurSub).text = ""
+
+                    // 点击行：展开/收起单事件操作（进行中不可操作）
+                    val key = "${s.fileName}|${row.name}|${row.start}|${row.end}|${row.note}"
+                    val actions = item.findViewById<View>(R.id.evActions)
+                    if (expandedKey == key && !row.ongoing) actions.visibility = View.VISIBLE
+                    item.setOnClickListener {
+                        expandedKey = if (expandedKey == key) null else key
+                        rebuild()
+                    }
+                    if (!row.ongoing) {
+                        item.findViewById<View>(R.id.btnEvShare).setOnClickListener { shareRow(row) }
+                        item.findViewById<View>(R.id.btnEvDelete).setOnClickListener { confirmDeleteRow(s, row) }
+                    }
                     list.addView(item)
                 }
             }
@@ -163,10 +181,69 @@ class EventListDialog : DialogFragment() {
         ""
     }
 
+    /** 分享单次事件（文本） */
+    private fun shareRow(row: Row) {
+        val dur = durationOf(row.start, row.end).removeSuffix("s")
+        val text = buildString {
+            appendLine(row.name)
+            appendLine("${row.start} → ${row.end}")
+            appendLine("duration: $dur s")
+            if (row.note.isNotBlank()) appendLine("note: ${row.note}")
+        }
+        startActivity(
+            Intent.createChooser(
+                Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, text.trim())
+                },
+                row.name,
+            ),
+        )
+    }
+
+    /** 删除单次事件：从所属事件表移除该行；当前会话同步移除内存记录 */
+    private fun confirmDeleteRow(s: Session, row: Row) {
+        AlertDialog.Builder(requireContext())
+            .setMessage(getString(R.string.event_delete_confirm, row.name))
+            .setPositiveButton(R.string.delete) { _, _ ->
+                lifecycleScope.launch {
+                    withContext(Dispatchers.IO) {
+                        val f = FileStore.findByName(requireContext(), s.fileName)
+                        if (f != null) {
+                            val text = FileStore.readText(requireContext(), f)
+                            if (text != null) {
+                                val kept = text.lineSequence()
+                                    .filter { it.isBlank() || it == row.line || !sameLine(it, row) }
+                                    .toList()
+                                FileStore.writeText(requireContext(), f, kept.joinToString("\n") + "\n")
+                            }
+                        }
+                        row.rec?.let { MuseHub.tracker.removeEvent(it) }
+                    }
+                    rebuild()
+                    (parentFragment as? RecordFragment)?.refreshFiles()
+                }
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    /** 行匹配：四元组（名称/起止/备注）一致即同一事件 */
+    private fun sameLine(line: String, row: Row): Boolean {
+        if (line.startsWith("Event,")) return false
+        val c = parseCsvLine(line)
+        return c.getOrElse(0) { "" } == row.name &&
+            c.getOrElse(1) { "" } == row.start &&
+            c.getOrElse(2) { "" } == row.end &&
+            c.getOrElse(4) { "" } == row.note
+    }
+
     private fun loadSessions(): List<Session> {
         val out = LinkedHashMap<String, Session>()
-        // 历史事件表（新→旧）
+        val openName = MuseHub.eventFileStore.fileName
+        // 历史事件表（新→旧）；当前打开的表跳过（用内存数据，避免重复）
         for (f in FileStore.listEvents(requireContext())) {
+            if (openName != null && f.name == openName) continue
             val text = FileStore.readText(requireContext(), f) ?: continue
             val rows = text.lineSequence()
                 .filter { it.isNotBlank() && !it.startsWith("Event,") }
@@ -177,21 +254,22 @@ class EventListDialog : DialogFragment() {
                         start = cols.getOrElse(1) { "" },
                         end = cols.getOrElse(2) { "" },
                         note = cols.getOrElse(4) { "" },
+                        line = line,
                     )
                 }.toList()
             if (rows.isNotEmpty()) out[f.name] = Session(f.name, rows, recording = false)
         }
-        // 当前组：正在写入的事件表 + 进行中事件（置顶）
-        val openName = MuseHub.eventFileStore.fileName
+        // 当前组：以内存事件为准（去重）+ 进行中
         if (openName != null) {
             val curRows = ArrayList<Row>()
-            (out.remove(openName))?.let { curRows.addAll(it.rows) }
             for (rec in MuseHub.tracker.sessionEvents.value) {
                 curRows.add(rowOf(rec))
             }
             MuseHub.tracker.active.value?.let { (name, startMs) ->
                 val fmt = SimpleDateFormat(EventFileStore.TIME_FORMAT, Locale.US)
-                curRows.add(Row(name, fmt.format(Date(startMs)), "", MuseHub.tracker.activeNote.value, ongoing = true))
+                curRows.add(
+                    Row(name, fmt.format(Date(startMs)), "", MuseHub.tracker.activeNote.value, ongoing = true),
+                )
             }
             if (curRows.isNotEmpty()) {
                 out[openName] = Session(
@@ -209,13 +287,14 @@ class EventListDialog : DialogFragment() {
         }
     }
 
-    private fun rowOf(rec: com.neuroskill.muserecorder.core.EventRecord): Row {
+    private fun rowOf(rec: EventRecord): Row {
         val fmt = SimpleDateFormat(EventFileStore.TIME_FORMAT, Locale.US)
         return Row(
             rec.name,
             fmt.format(Date(rec.startMs)),
             fmt.format(Date(rec.endMs)),
             rec.note,
+            rec = rec,
         )
     }
 
