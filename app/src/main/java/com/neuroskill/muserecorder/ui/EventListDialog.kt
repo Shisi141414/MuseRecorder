@@ -52,7 +52,6 @@ class EventListDialog : DialogFragment() {
     )
 
     private var currentFileForButtons: FileStore.RecFile? = null
-    private var expandedKey: String? = null
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val d = super.onCreateDialog(savedInstanceState)
@@ -145,14 +144,9 @@ class EventListDialog : DialogFragment() {
                         if (row.ongoing) getString(R.string.event_ongoing) else durationOf(row.start, row.end)
                     item.findViewById<TextView>(R.id.evDurSub).text = ""
 
-                    // 点击行：展开/收起单事件操作（进行中不可操作）
-                    val key = "${s.fileName}|${row.name}|${row.start}|${row.end}|${row.note}"
+                    // 单事件操作按钮常显（进行中不可操作）
                     val actions = item.findViewById<View>(R.id.evActions)
-                    if (expandedKey == key && !row.ongoing) actions.visibility = View.VISIBLE
-                    item.setOnClickListener {
-                        expandedKey = if (expandedKey == key) null else key
-                        rebuild()
-                    }
+                    actions.visibility = if (row.ongoing) View.GONE else View.VISIBLE
                     if (!row.ongoing) {
                         item.findViewById<View>(R.id.btnEvShare).setOnClickListener { shareRow(row) }
                         item.findViewById<View>(R.id.btnEvDelete).setOnClickListener { confirmDeleteRow(s, row) }
@@ -212,8 +206,9 @@ class EventListDialog : DialogFragment() {
                         if (f != null) {
                             val text = FileStore.readText(requireContext(), f)
                             if (text != null) {
+                                // 移除匹配行（保留表头与其它行）
                                 val kept = text.lineSequence()
-                                    .filter { it.isBlank() || it == row.line || !sameLine(it, row) }
+                                    .filter { it.isBlank() || !sameLine(it, row) }
                                     .toList()
                                 FileStore.writeText(requireContext(), f, kept.joinToString("\n") + "\n")
                             }
