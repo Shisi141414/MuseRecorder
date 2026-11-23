@@ -206,6 +206,9 @@
     <!-- 当前事件（v1.6.0） -->
     <string name="current_event">当前事件</string>
     <string name="current_event_none">点击选择</string>
+    <string name="event_selected">已选</string>
+    <string name="event_start">开始</string>
+    <string name="btn_rec_stop_fmt">停止 %1$s</string>
     <string name="event_ongoing">进行中</string>
     <string name="event_end">结束</string>
     <string name="event_note">备注</string>

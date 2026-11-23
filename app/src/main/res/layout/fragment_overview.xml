@@ -261,6 +261,54 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/eventRowSelected"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/eventSelChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/chip_selected_bg"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="3dp"
+                android:text="@string/event_selected"
+                android:textColor="@android:color/white"
+                android:textSize="10.5sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/eventSelName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textSize="15sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEventStart"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="34dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:minWidth="0dp"
+                android:paddingHorizontal="16dp"
+                android:text="@string/event_start"
+                android:textColor="@color/good"
+                android:textSize="12sp"
+                app:strokeColor="@color/good"
+                app:strokeWidth="1.6dp" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/eventRowActive"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

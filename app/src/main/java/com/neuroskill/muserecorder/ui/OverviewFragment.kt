@@ -76,7 +76,8 @@ class OverviewFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch { MuseHub.tracker.active.collect { renderEventCard() } }
         viewLifecycleOwner.lifecycleScope.launch { MuseHub.tracker.activeNote.collect { renderEventCard() } }
         binding.eventCard.setOnClickListener { showEventPopup() }
-        binding.btnEventEnd.setOnClickListener { MuseHub.tracker.closeCurrent() }
+        binding.btnEventStart.setOnClickListener { MuseHub.tracker.start() }
+        binding.btnEventEnd.setOnClickListener { showEndNoteDialog() }
         binding.eventNoteRow.setOnClickListener { showNoteDialog() }
 
         binding.btnConnect.setOnClickListener { onConnectClicked() }
@@ -93,26 +94,40 @@ class OverviewFragment : Fragment() {
 
     private fun renderEventCard() {
         val active = MuseHub.tracker.active.value
-        if (active != null) {
-            binding.eventRowIdle.visibility = View.GONE
-            binding.eventRowActive.visibility = View.VISIBLE
-            binding.eventNoteRow.visibility = View.VISIBLE
-            binding.eventCard.setBackgroundResource(R.drawable.event_card_bg_active)
-            binding.eventActiveName.text = active.first
-            val elapsed = (System.currentTimeMillis() - active.second) / 1000
-            binding.eventTime.text = String.format(
-                Locale.US, "%02d:%02d", elapsed / 60, elapsed % 60,
-            )
-            val note = MuseHub.tracker.activeNote.value
-            binding.eventNoteText.text =
-                note.ifBlank { getString(R.string.event_note_add) }
-        } else {
-            binding.eventRowIdle.visibility = View.VISIBLE
-            binding.eventRowActive.visibility = View.GONE
-            binding.eventNoteRow.visibility = View.GONE
-            binding.eventCard.setBackgroundResource(R.drawable.event_card_bg)
-            val sel = MuseHub.prefs.lastEventName.takeIf { it.isNotBlank() }
-            binding.eventName.text = sel ?: getString(R.string.current_event_none)
+        val selected = MuseHub.tracker.selectedName.value
+        when {
+            active != null -> {
+                binding.eventRowIdle.visibility = View.GONE
+                binding.eventRowSelected.visibility = View.GONE
+                binding.eventRowActive.visibility = View.VISIBLE
+                binding.eventNoteRow.visibility = View.VISIBLE
+                binding.eventCard.setBackgroundResource(R.drawable.event_card_bg_active)
+                binding.eventActiveName.text = active.first
+                val elapsed = (System.currentTimeMillis() - active.second) / 1000
+                binding.eventTime.text = String.format(
+                    Locale.US, "%02d:%02d", elapsed / 60, elapsed % 60,
+                )
+                val note = MuseHub.tracker.activeNote.value
+                binding.eventNoteText.text =
+                    note.ifBlank { getString(R.string.event_note_add) }
+            }
+            selected != null -> {
+                binding.eventRowIdle.visibility = View.GONE
+                binding.eventRowSelected.visibility = View.VISIBLE
+                binding.eventRowActive.visibility = View.GONE
+                binding.eventNoteRow.visibility = View.GONE
+                binding.eventCard.setBackgroundResource(R.drawable.event_card_bg)
+                binding.eventSelName.text = selected
+            }
+            else -> {
+                binding.eventRowIdle.visibility = View.VISIBLE
+                binding.eventRowSelected.visibility = View.GONE
+                binding.eventRowActive.visibility = View.GONE
+                binding.eventNoteRow.visibility = View.GONE
+                binding.eventCard.setBackgroundResource(R.drawable.event_card_bg)
+                val sel = MuseHub.prefs.lastEventName.takeIf { it.isNotBlank() }
+                binding.eventName.text = sel ?: getString(R.string.current_event_none)
+            }
         }
     }
 
@@ -268,6 +283,24 @@ class OverviewFragment : Fragment() {
             .show()
     }
 
+    /** 点击「结束」：先弹备注输入（仅「确定」，可留空），确认后收尾 */
+    private fun showEndNoteDialog() {
+        val active = MuseHub.tracker.active.value ?: return
+        val input = EditText(requireContext()).apply {
+            text.insert(0, MuseHub.tracker.activeNote.value)
+            hint = getString(R.string.event_note)
+        }
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle(active.first)
+            .setView(input)
+            .setCancelable(false)
+            .setPositiveButton(R.string.ok) { _, _ ->
+                MuseHub.tracker.setNote(input.text.toString().trim())
+                MuseHub.tracker.closeCurrent()
+            }
+            .show()
+    }
+
     private fun showNoteDialog() {
         val input = EditText(requireContext()).apply {
             text.insert(0, MuseHub.tracker.activeNote.value)
@@ -403,8 +436,13 @@ class OverviewFragment : Fragment() {
 
     private fun renderRecordButton() {
         val ctx = context ?: return
-        if (MuseHub.recorder.isRecording) {
-            binding.btnRec.setText(R.string.btn_rec_stop)
+        val rec = MuseHub.recorder.state.value
+        if (rec != null) {
+            val elapsed = (System.currentTimeMillis() - rec.startedAtMs) / 1000
+            val durStr = String.format(
+                Locale.US, "%02d:%02d", elapsed / 60, elapsed % 60,
+            )
+            binding.btnRec.text = getString(R.string.btn_rec_stop_fmt, durStr)
             binding.btnRec.setTextColor(ContextCompat.getColor(ctx, android.R.color.white))
             binding.btnRec.backgroundTintList = ContextCompat.getColorStateList(ctx, R.color.bad)
             binding.btnRec.strokeColor = ContextCompat.getColorStateList(ctx, R.color.bad)
@@ -413,6 +451,11 @@ class OverviewFragment : Fragment() {
             binding.btnRec.setTextColor(ContextCompat.getColor(ctx, R.color.bad))
             binding.btnRec.backgroundTintList = ContextCompat.getColorStateList(ctx, R.color.chipBg)
             binding.btnRec.strokeColor = ContextCompat.getColorStateList(ctx, R.color.bad)
+        }
+        // 录制中显示时长需要加宽
+        val density = resources.displayMetrics.density
+        binding.btnRec.layoutParams = (binding.btnRec.layoutParams as android.view.ViewGroup.LayoutParams).apply {
+            width = if (rec != null) (118 * density).toInt() else (92 * density).toInt()
         }
     }
 

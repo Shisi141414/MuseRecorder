@@ -10,29 +10,37 @@ import org.junit.Test
 class EventsTest {
 
     @Test
-    fun `select anytime opens and replace auto-closes`() {
+    fun `select arms only, start begins, end closes to unselected`() {
         var clock = 1000L
         val closed = ArrayList<EventRecord>()
         val t = EventTracker(clock = { clock }, onClosed = { closed.add(it) })
         assertNull(t.active.value)
 
-        t.select("闭眼静息")       // 随时可选，不依赖记录
-        assertEquals("闭眼静息" to 1000L, t.active.value)
+        t.select("闭眼静息")       // 仅已选，不开启
+        assertEquals("闭眼静息", t.selectedName.value)
+        assertNull(t.active.value)
+
+        clock = 2000
+        t.start()                  // 点「开始」才开启
+        assertEquals("闭眼静息" to 2000L, t.active.value)
+        assertNull(t.selectedName.value)
+
         clock = 61000
-        t.select("心算任务")       // 换选自动结束上一个
+        t.select("心算任务")       // 换选：自动结束上一个并回到已选态
         assertEquals(1, closed.size)
         assertEquals("闭眼静息", closed[0].name)
-        assertEquals(1000L, closed[0].startMs)
+        assertEquals(2000L, closed[0].startMs)
         assertEquals(61000L, closed[0].endMs)
-        assertEquals("心算任务" to 61000L, t.active.value)
-
-        clock = 90000
-        t.closeCurrent()           // 手动结束
-        assertEquals(2, closed.size)
-        assertEquals("心算任务", closed[1].name)
-        assertEquals(61000L, closed[1].startMs)
-        assertEquals(90000L, closed[1].endMs)
+        assertEquals("心算任务", t.selectedName.value)
         assertNull(t.active.value)
+
+        clock = 70000
+        t.start()
+        clock = 90000
+        t.closeCurrent()           // 结束 → 回到未选择
+        assertEquals(2, closed.size)
+        assertNull(t.active.value)
+        assertNull(t.selectedName.value)
     }
 
     @Test
@@ -43,6 +51,7 @@ class EventsTest {
         t.setNote("ignored")         // 无进行中事件 → 忽略
         assertEquals("", t.activeNote.value)
         t.select("任务A")
+        t.start()
         t.setNote("第 3 组, 含逗号")
         clock = 6010
         t.closeCurrent()

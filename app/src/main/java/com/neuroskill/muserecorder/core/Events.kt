@@ -27,14 +27,17 @@ data class EventRecord(
 )
 
 /**
- * 当前事件跟踪：选择预设事件 → 立即开启区间（随时可选/结束，不依赖脑电记录）。
+ * 当前事件跟踪：下拉选择仅「已选」（不计时），点「开始」才开启区间；
+ * 同一按钮进行中变「结束」。随时可选/开始/结束，不依赖脑电记录。
  * 纯状态机（时间可注入，可单元测试）；落盘由 [EventFileStore] 负责。
- * 主 CSV 不写任何事件标记，事件仅存 *_events.csv。
  */
 class EventTracker(
     private val clock: () -> Long,
     private val onClosed: (EventRecord) -> Unit,
 ) {
+    /** 已选未开始的事件名 */
+    val selectedName = MutableStateFlow<String?>(null)
+
     /** 进行中的事件：name to startMs */
     val active = MutableStateFlow<Pair<String, Long>?>(null)
     val activeNote = MutableStateFlow("")
@@ -42,21 +45,31 @@ class EventTracker(
     /** 当前事件组（当前打开的事件表文件）内已完成的事件 */
     val sessionEvents = MutableStateFlow<List<EventRecord>>(emptyList())
 
-    /** 选择事件：立即开启（换选自动结束上一个） */
+    /** 下拉选择：仅设为已选（若有进行中事件则自动结束，回到已选态） */
     fun select(name: String) {
+        closeCurrent()
+        selectedName.value = name
+    }
+
+    /** 开始已选事件（「开始」按钮） */
+    fun start() {
+        val name = selectedName.value ?: return
         closeCurrent()
         active.value = name to clock()
         activeNote.value = ""
     }
 
-    /** 结束当前事件 */
+    /** 结束当前事件：收尾落盘并回到未选择态 */
     fun closeCurrent() {
-        val cur = active.value ?: return
-        val rec = EventRecord(cur.first, cur.second, clock(), activeNote.value)
-        sessionEvents.value = sessionEvents.value + rec
-        active.value = null
-        activeNote.value = ""
-        onClosed(rec)
+        val cur = active.value
+        if (cur != null) {
+            val rec = EventRecord(cur.first, cur.second, clock(), activeNote.value)
+            sessionEvents.value = sessionEvents.value + rec
+            active.value = null
+            activeNote.value = ""
+            onClosed(rec)
+        }
+        selectedName.value = null
     }
 
     /** 修改当前事件备注（仅进行中有效） */

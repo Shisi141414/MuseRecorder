@@ -206,6 +206,9 @@
     <!-- Current event (v1.6.0) -->
     <string name="current_event">Current event</string>
     <string name="current_event_none">Tap to select</string>
+    <string name="event_selected">Selected</string>
+    <string name="event_start">Start</string>
+    <string name="btn_rec_stop_fmt">Stop %1$s</string>
     <string name="event_ongoing">Ongoing</string>
     <string name="event_end">End</string>
     <string name="event_note">Note</string>
