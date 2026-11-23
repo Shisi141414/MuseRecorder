@@ -1,0 +1,1 @@
+Open-source Muse headband recorder: live EEG views, Mind Monitor-compatible CSV, offline

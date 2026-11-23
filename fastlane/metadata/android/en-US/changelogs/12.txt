@@ -1,0 +1,3 @@
+- Events: selecting an event only arms it; tap the green Start to begin timing, the same button turns red End; tapping End opens a note dialog (single OK, may be empty) before closing
+- Overview Rec button shows elapsed recording time (Stop mm:ss)
+- Restart restores the last selected event

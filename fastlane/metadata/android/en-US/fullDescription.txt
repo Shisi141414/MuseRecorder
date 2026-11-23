@@ -1,0 +1,10 @@
+Free, open-source (MIT) Android app for recording EEG from Muse headbands: Muse S (Gen 2), Muse S, Muse 2 and Muse 2016 — with live raw/spectrum/spectrogram views and Mind Monitor-compatible CSV output.
+
+• No internet permission: the app never goes online, contains no ads and no trackers — all data stays on your device (Download/MuseRecorder)
+• Live overview: battery, signal (RSSI), per-electrode contact quality, three EEG views (raw 4-channel lanes, 1–60 Hz spectrum, scrolling spectrogram)
+• Recording: 256 Hz EEG (TP9/AF7/AF8/TP10, µV), accelerometer & gyroscope (52 Hz), PPG/optics (64 Hz), battery and quality columns — CSV columns match Mind Monitor, so existing MATLAB/Python pipelines work unchanged
+• Activity/event tracking: pick from preset events, start/end with an optional note; intervals go to a sidecar _events.csv timestamped to the millisecond with the EEG stream — the main CSV stays 100% label-free
+• Long-session stability: foreground service, wake lock, data watchdog, exponential-backoff auto-reconnect
+• Bilingual UI and logs (English / 简体中文), full dark mode
+
+Protocol implementation is bit-exact with muse-lsl / BrainFlow (both MIT, credited in NOTICE.md). Independent community project, not affiliated with InterAxon.

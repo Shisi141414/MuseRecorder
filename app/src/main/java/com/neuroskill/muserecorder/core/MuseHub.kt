@@ -209,6 +209,8 @@ object MuseHub {
         CrashReporter.lastCrashName(appContext)?.let { name ->
             pushLog("上次异常记录: $name (Download/MuseRecorder)", LogKind.ERROR)
         }
+        // 重启后恢复上次选择的事件为「已选」态（避免回到灰色未选择）
+        tracker.selectedName.value = prefs.lastEventName.takeIf { it.isNotBlank() }
         qualityEst = QualityEstimator { levels, headOn ->
             quality.value = QualityState(levels.copyOf(), headOn)
             recorder.setHsi(levels)
